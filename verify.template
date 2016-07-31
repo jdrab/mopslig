@@ -1,0 +1,130 @@
+#!/usr/bin/env perl
+#
+#    This file is part of Mopslig.
+#
+#    Mopslig is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Mopslig is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Mopslig.  If not, see <http://www.gnu.org/licenses/>.
+#
+use warnings;
+use strict;
+
+use PAR;
+use Crypt::PBKDF2;
+use File::Slurp;
+use Crypt::PBKDF2::Hash::HMACSHA2;
+use Getopt::Long;
+
+GetOptions('build-id'=>\my $build_id, 'serial=s' => \my $serial ,'quiet'=>\my $quiet, 'help'=>\my $help);
+
+=pod
+ 
+=head1 DESCRIPTION
+ 
+Verify license key
+
+=head1 Usage
+
+Usage: 
+
+$0          --serial    key to verify
+            --quiet     does not output anything
+
+=head2 Exit codes
+        0 - key is valid
+        1 - key is invalid
+=cut
+if( $help ) {
+    usage();
+    exit;
+}
+unless ($serial) {
+     
+    # print "\nMissing serial number to verify";
+    usage();
+    exit;
+}
+
+sub usage {
+    print <<EOL;
+
+Verify license key
+
+Usage:
+
+$0\t--serial \tkey to verify
+\t\t--quiet \tdoes not output anything
+
+Exit codes:
+
+0   serial is valid
+1   serial is invalid
+
+EOL
+}
+
+my $build_id_val = "MOPSLIG_BUILD_ID";
+
+if( $build_id ) {
+    print $build_id_val."\n";
+    exit;
+}
+
+my @hashes = qw(
+MOPSLIG_VERIFY_HASHES
+    );
+
+my $hash_class = 'HMACSHA2';
+my $sha_size   = 512;
+my $salt_len   = 10;
+my @balik_data;
+my $prefix = '{X-PBKDF2}HMACSHA2+512:AAAD6A:';
+
+my $pbkdf2 = Crypt::PBKDF2->new(
+    hash_class => $hash_class,
+    hash_args  => { sha_size => $sha_size },
+    salt_len   => $salt_len
+);
+my $i = 1;
+
+sub validate {
+    my $key = shift;
+    my $i   = 0;
+    my $sum = scalar(@hashes);
+
+    $| = 1;
+    foreach my $b1 (@hashes) {
+
+        unless ( $quiet) {
+            print "\r";
+            printf("%d", ( $i* 100 / $sum )+1 );
+            print "%";
+        }
+
+        if ( $pbkdf2->validate( $prefix . $b1, $key ) ) {
+            print "\r\r100%" unless $quiet;
+            return ( split( "-", $key ) )[-1]    
+        }
+
+        $i++;
+    }
+    print "\r\r100%" unless $quiet;
+    return 0;
+}
+
+if( validate($serial) ) {
+    print "\nVALID $serial\n" unless $quiet;
+    exit 0;
+} else {
+    print "\nINVALID $serial\n" unless $quiet;
+    exit 1;
+}

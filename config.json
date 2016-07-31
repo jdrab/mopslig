@@ -1,0 +1,29 @@
+{
+  "licenses": {
+    "amounts": {
+      "start": 10,
+      "plus": 10,
+      "premium": 10
+    },
+    "types": {
+      "start": {
+        "license-amount": 5,
+        "valid-since": "2016-01-08",
+        "valid-until": "2017-01-08",
+        "version": "1.0"
+      },
+      "plus": {
+        "license-amount": 20,
+        "valid-since": "2016-01-08",
+        "valid-until": "2017-01-08",
+        "version": "1.0"
+      },
+      "premium": {
+        "license-amount": 50,
+        "valid-since": "2016-01-08",
+        "valid-until": "2017-01-08",
+        "version": "1.0"
+      }
+    }
+  }
+}
