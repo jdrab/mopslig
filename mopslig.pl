@@ -20,14 +20,20 @@ use warnings;
 use strict;
 
 use List::Util qw/shuffle/;
-use Crypt::PBKDF2;
-use Crypt::PBKDF2::Hash::HMACSHA2;
+# use Crypt::PBKDF2;
+# use Crypt::PBKDF2::Hash::HMACSHA2;
 use File::Slurp;
 use Data::Dumper;
 use JSON::XS;
 use Getopt::Long;
-use Digest::SHA1  qw(sha1_hex);
+# use Digest::SHA1  qw(sha1_hex);
 
+use File::Basename qw(dirname);
+use Cwd qw(abs_path);
+use lib dirname( abs_path $0) . '/lib';
+
+use Mopslig::Generator;
+use Mopslig::Helper;
 
 #FIXME: merge with config or create another or maybe just use getopts
 my $_dir                    = 'data';
@@ -38,6 +44,8 @@ my $_extraction_keys_full = $_dir.'/extraction-keys.txt';
 
 my $_product_prefix     = $_dir.'/';
 my $_product_postfix    = '-full.txt';
+
+my $default_license_key = 'START-DE12-FA34-UL56-T789';
 
 =pod
  
@@ -91,96 +99,6 @@ sub usage {
     print "\nUsage:\t $0 sure \t--no-dots\t--debug\n\n";
 }
 
-=pod
-Generate random string - used for keys generation
-=cut
-sub gimme_random_string {
-    my $length = shift || 6;
-    my $chars = shift || [ "A" .. "Z", "a" .. "z", "0" .. "9" ];
-
-    my $string;
-    $string .= $chars->[ int rand scalar @{$chars} ] for 1 .. $length;
-    return $string;
-}
-
-=pod
-Generate product keys
-=cut
-sub generate_keys {
-    my $amount         = shift || 1;
-    my $how_many_chars = shift || 16;
-
-    # By default I don't want to generate keys with
-    # charactes 1 l O 0 - keys might be unreadable for users
-    my @range
-        = ( 2, 3, 4, 5, 6, 7, 8, 9, "A" .. "H", "J" .. "N", "P" .. "Z" );
-    my @customer_serial_numbers;
-    $| = 1;
-
-    # I don't care if generated strings are unique
-    foreach my $i ( 1 .. $amount ) {
-        print "." unless $nodots;
-        my $k = gimme_random_string( $how_many_chars, \@range );
-        push( @customer_serial_numbers, join( "-", unpack( "(A4)*", $k ) ) );
-    }
-    return @customer_serial_numbers;
-}
-=pod
-Create key for lic file extraction
-key format: 12345-12345-12345
-=cut
-
-sub create_key_for_lic_extraction {
-    my $serial = shift || croak("Missing serial number");
-    ( my $shan = sha1_hex($serial) ) =~ s/[a-z]//gi;
-    return join( "-", ( unpack( "(A5)*", $shan ) )[ 0 .. 2 ] );
-}
-
-=pod
-What the name says
-=cut
-sub uniq {
-    my %seen;
-    return grep { !$seen{$_}++ } @_;
-}
-=pod
-Generate hashes for license 'package'
-=cut
-sub generate_hashes_for_package {
-    my $serials = shift || die("Need serial numbers");
-    my $prefix  = shift || '';
-
-    # don't forget to escape prehash value for regex
-    my $prehash    = shift || '{X-PBKDF2}HMACSHA2\+512:AAAD6A:';
-    my $hash_class = shift || 'HMACSHA2';
-    my $sha_size   = shift || 512;
-    my $salt_len   = shift || 10;
-
-    my @pkg_data;
-
-    foreach my $serial ( @{$serials} ) {
-        $| = 1;
-        my $pbkdf2 = Crypt::PBKDF2->new(
-            hash_class => $hash_class,
-            hash_args  => { sha_size => $sha_size },
-            salt_len   => $salt_len
-        );
-
-        my $full = $prefix . $serial;
-        my $hash = $pbkdf2->generate($full);
-
-        $hash =~ s/^$prehash//g;
-        # add hash for license extraction
-        my $extractor = create_key_for_lic_extraction($serial);
-
-        push( @pkg_data, ( $full . "\t" . $hash ."\t". $extractor) );
-
-        print "." unless $nodots;
-    }
-    return @pkg_data;
-}
-
-
 # read license packages config
 my $products = File::Slurp::read_file('./config.json');
 my $product_data = JSON::XS->new->utf8->decode($products);
@@ -199,8 +117,8 @@ my $counter        = 1;
 
 while ( $counter < $amount_of_keys ) {
     $cycle++;
-    push( @all_serials, generate_keys( $in_one_cycle, 16 ) );
-    @all_serials = uniq(@all_serials);
+    push( @all_serials, Mopslig::Generator::generate_keys( $in_one_cycle, 16 ,$nodots) );
+    @all_serials = Mopslig::Helper::uniq(@all_serials);
     # check if there is already enough unique keys
     $counter = scalar(@all_serials);
 }
@@ -216,7 +134,7 @@ foreach my $key ( keys( %{ $product_data->{licenses}{types} } ) ) {
     my @serials_for_package = splice( @all_serials, 0, $product_data->{licenses}{amounts}{$key});
 
     _debug("Generating hashes for package $key");
-    my @package_data = generate_hashes_for_package(\@serials_for_package, uc "$key-");
+    my @package_data = Mopslig::Generator::generate_hashes_for_package(\@serials_for_package, uc "$key-",$nodots);
 
     my (@serials,@verify_hashes,@extraction_keys);
     map {
@@ -241,6 +159,25 @@ foreach my $key ( keys( %{ $product_data->{licenses}{types} } ) ) {
     push(@full_extraction_keys, @extraction_keys);
 }
 
+my @splited_default = split('-',$default_license_key);
+# my @dk = @splited_default;
+my @default_key = ( join('-',splice(@splited_default,0)) );
+my @default_package_data = Mopslig::Generator::generate_hashes_for_package(\@default_key);
+
+my (@d_serials,@d_verify_hashes,@d_extraction_keys);
+map {
+    my ($s,$h,$e) = split("\t",$_);
+    push(@d_serials,$s);
+    push(@d_verify_hashes, $h);
+    push(@d_extraction_keys, $e);
+} @default_package_data;
+
+print Dumper(\@default_package_data);
+
+push(@full,@default_package_data);
+push(@full_verify_hashes,@d_verify_hashes);
+push(@full_extraction_keys,@d_extraction_keys);
+
 print "\n" unless $nodots;
 File::Slurp::write_file( $_file_full,    join( "\n", @full ) );
 File::Slurp::write_file( $_serials_full, join( "\n", @full_serials ) );
@@ -252,5 +189,6 @@ File::Slurp::write_file( $_verify_hashes_full, join( "\n", @full_verify_hashes )
 File::Slurp::write_file( $_extraction_keys_full, join( "\n", @full_extraction_keys ) );
 
 File::Slurp::write_file( $_dir.'/build-id',localtime);
+
 _debug( "CELE DATA:\n" . Dumper( \%data ) );
 exit(0);

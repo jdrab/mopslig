@@ -6,22 +6,24 @@
       "premium": 10
     },
     "types": {
+      "valid_since":"2016-08",
+      "valid_until":"2017-07",
       "start": {
-        "license-amount": 5,
-        "valid-since": "2016-01-08",
-        "valid-until": "2017-01-08",
+        "license_amount": 5,
+        "valid_since": "2016-08",
+        "valid_until": "2017-07",
         "version": "1.0"
       },
       "plus": {
-        "license-amount": 20,
-        "valid-since": "2016-01-08",
-        "valid-until": "2017-01-08",
+        "license_amount": 20,
+        "valid_since": "2016-08",
+        "valid_until": "2017-07",
         "version": "1.0"
       },
       "premium": {
-        "license-amount": 50,
-        "valid-since": "2016-01-08",
-        "valid-until": "2017-01-08",
+        "license_amount": 50,
+        "valid_since": "2016-08",
+        "valid_until": "2017-07",
         "version": "1.0"
       }
     }
