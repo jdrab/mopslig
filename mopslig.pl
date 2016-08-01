@@ -40,7 +40,8 @@ my $_dir                    = 'data';
 my $_file_full              = $_dir.'/full.txt';
 my $_serials_full           = $_dir.'/serials.txt';
 my $_verify_hashes_full     = $_dir.'/verify-hashes.txt';
-my $_extraction_keys_full = $_dir.'/extraction-keys.txt';
+my $_extraction_keys_full   = $_dir.'/extraction-keys.txt';
+my $_extraction_hashes_full = $_dir.'/extraction-hashes.txt';
 
 my $_product_prefix     = $_dir.'/';
 my $_product_postfix    = '-full.txt';
@@ -128,6 +129,8 @@ my @full;
 my @full_serials;
 my @full_verify_hashes;
 my @full_extraction_keys;
+my @full_extraction_hashes;
+
 foreach my $key ( keys( %{ $product_data->{licenses}{types} } ) ) {
 
     # get generated keys for this package
@@ -136,18 +139,20 @@ foreach my $key ( keys( %{ $product_data->{licenses}{types} } ) ) {
     _debug("Generating hashes for package $key");
     my @package_data = Mopslig::Generator::generate_hashes_for_package(\@serials_for_package, uc "$key-",$nodots);
 
-    my (@serials,@verify_hashes,@extraction_keys);
+    my (@serials,@verify_hashes,@extraction_keys,@extraction_hashes);
     map {
-        my ($s,$h,$e) = split("\t",$_);
+        my ($s,$h,$ek,$eh) = split("\t",$_);
         push(@serials,$s);
         push(@verify_hashes, $h);
-        push(@extraction_keys, $e);
+        push(@extraction_keys, $ek);
+        push(@extraction_hashes, $eh);
     } @package_data;
     
     if( $debug ) {
         $data{$key}{serials} = \@serials;
         $data{$key}{verify_hashes} = \@verify_hashes;
         $data{$key}{extraction_keys} = \@extraction_keys;
+        $data{$key}{extraction_hashes} = \@extraction_hashes;
     }
 
     _debug( "Writing to file ".$_product_prefix.$key.$_product_postfix);
@@ -157,6 +162,7 @@ foreach my $key ( keys( %{ $product_data->{licenses}{types} } ) ) {
     push(@full_serials, @serials);
     push(@full_verify_hashes, @verify_hashes);
     push(@full_extraction_keys, @extraction_keys);
+    push(@full_extraction_hashes, @extraction_hashes);
 }
 
 my @splited_default = split('-',$default_license_key);
@@ -164,19 +170,19 @@ my @splited_default = split('-',$default_license_key);
 my @default_key = ( join('-',splice(@splited_default,0)) );
 my @default_package_data = Mopslig::Generator::generate_hashes_for_package(\@default_key);
 
-my (@d_serials,@d_verify_hashes,@d_extraction_keys);
+my (@d_serials,@d_verify_hashes,@d_extraction_keys,@d_extraction_hashes);
 map {
-    my ($s,$h,$e) = split("\t",$_);
+    my ($s,$h,$ek,$eh) = split("\t",$_);
     push(@d_serials,$s);
     push(@d_verify_hashes, $h);
-    push(@d_extraction_keys, $e);
+    push(@d_extraction_keys, $ek);
+    push(@d_extraction_hashes, $eh);
 } @default_package_data;
-
-print Dumper(\@default_package_data);
 
 push(@full,@default_package_data);
 push(@full_verify_hashes,@d_verify_hashes);
 push(@full_extraction_keys,@d_extraction_keys);
+push(@full_extraction_hashes,@d_extraction_hashes);
 
 print "\n" unless $nodots;
 File::Slurp::write_file( $_file_full,    join( "\n", @full ) );
@@ -187,6 +193,9 @@ File::Slurp::write_file( $_verify_hashes_full, join( "\n", @full_verify_hashes )
 
 @full_extraction_keys = shuffle(@full_extraction_keys);
 File::Slurp::write_file( $_extraction_keys_full, join( "\n", @full_extraction_keys ) );
+
+@full_extraction_hashes = shuffle(@full_extraction_hashes);
+File::Slurp::write_file( $_extraction_hashes_full, join( "\n", @full_extraction_hashes ) );
 
 File::Slurp::write_file( $_dir.'/build-id',localtime);
 

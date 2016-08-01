@@ -47,9 +47,16 @@ if( $help ) {
     usage();
     exit;
 }
+
+
+my $build_id_val = "MOPSLIG_BUILD_ID";
+
+if( $build_id ) {
+    print $build_id_val."\n";
+    exit;
+}
+
 unless ($serial) {
-     
-    # print "\nMissing serial number to verify";
     usage();
     exit;
 }
@@ -72,12 +79,6 @@ Exit codes:
 EOL
 }
 
-my $build_id_val = "MOPSLIG_BUILD_ID";
-
-if( $build_id ) {
-    print $build_id_val."\n";
-    exit;
-}
 
 my @hashes = qw(
 MOPSLIG_VERIFY_HASHES
@@ -94,6 +95,7 @@ my $pbkdf2 = Crypt::PBKDF2->new(
     hash_args  => { sha_size => $sha_size },
     salt_len   => $salt_len
 );
+
 my $i = 1;
 
 sub validate {

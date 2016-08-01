@@ -16,6 +16,8 @@ key format: 12345-12345-12345
 
 sub generate_key_for_lic_extraction {
     my $serial = shift || croak("Missing serial number");
+    use Data::Dumper;
+    print Dumper($serial);
     ( my $shan = sha1_hex($serial) ) =~ s/[a-z]//gi;
     return join( "-", ( unpack( "(A5)*", $shan ) )[ 0 .. 2 ] );
 }
@@ -70,12 +72,18 @@ sub generate_hashes_for_package {
 
         my $full = $prefix . $serial;
         my $hash = $pbkdf2->generate($full);
-
+        # my $extraction_hash = $pbkdf2->generate()
+        
         $hash =~ s/^$prehash//g;
         # add hash for license extraction
-        my $extractor = generate_key_for_lic_extraction($serial);
-
-        push( @pkg_data, ( $full . "\t" . $hash ."\t". $extractor) );
+        print "Serial ktory ide do generate_key_for_lic_extraction: $serial\n";
+        my $extraction_key = generate_key_for_lic_extraction($serial);
+        print "Extraction_key pred: $extraction_key\n";
+        my $extraction_hash = $pbkdf2->generate($extraction_key);
+        
+        $extraction_hash =~ s/^$prehash//g;
+        print "Extraction_key po: $extraction_key\n".
+        push( @pkg_data, ( $full . "\t" . $hash ."\t". $extraction_key."\t".$extraction_hash) );
 
         print "." unless $nodots;
     }

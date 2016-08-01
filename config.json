@@ -1,31 +1,40 @@
 {
   "licenses": {
+    "valid_since": "2016-08",
+      "valid_until": "2017-07",
     "amounts": {
-      "start": 10,
-      "plus": 10,
-      "premium": 10
+      "start": 1000,
+      "plus":  500,
+      "premium": 100
     },
     "types": {
-      "valid_since":"2016-08",
-      "valid_until":"2017-07",
-      "start": {
-        "license_amount": 5,
-        "valid_since": "2016-08",
-        "valid_until": "2017-07",
-        "version": "1.0"
-      },
       "plus": {
-        "license_amount": 20,
+        "kbsusers": {
+          "license_amount": 20,
+          "valid_since": "2016-08",
+          "valid_until": "2017-07"
+        },
         "valid_since": "2016-08",
-        "valid_until": "2017-07",
-        "version": "1.0"
+        "valid_until": "2017-07"
       },
       "premium": {
-        "license_amount": 50,
+        "kbsusers": {
+          "license_amount": 50,
+          "valid_since": "2016-08",
+          "valid_until": "2017-07"
+        },
         "valid_since": "2016-08",
-        "valid_until": "2017-07",
-        "version": "1.0"
-      }
+        "valid_until": "2017-07"
+      },
+      "start": {
+        "kbsusers": {
+          "license_amount": 5,
+          "valid_since": "2016-08",
+          "valid_until": "2017-07"
+        },
+        "valid_since": "2016-08",
+        "valid_until": "2017-07"
+      }      
     }
   }
 }
