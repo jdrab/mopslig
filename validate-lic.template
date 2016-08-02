@@ -38,7 +38,7 @@ my $build_id_val = "MOPSLIG_BUILD_ID";
 
 if ($build_id) {
     print $build_id_val. "\n";
-    exit;
+    exit(0);
 }
 ######
 #
@@ -63,35 +63,42 @@ my @hashes = qw(
     MOPSLIG_EXTRACTION_HASHES
 );
 
-my $hash_class = 'HMACSHA2';
-my $sha_size   = 512;
-my $salt_len   = 10;
-my @balik_data;
-my $prefix = '{X-PBKDF2}HMACSHA2+512:AAAD6A:';
-
-my $pbkdf2 = Crypt::PBKDF2->new(
-    hash_class => $hash_class,
-    hash_args  => { sha_size => $sha_size },
-    salt_len   => $salt_len
-);
-
 sub validate {
-    my $key = shift;
-    my $i   = 0;
-    my $sum = scalar(@hashes);
+    my $key    = shift;
+    print "Validate key: $key\n";
+    my $hashes = shift;
+    my $i      = 0;
+    my $sum    = scalar( @{$hashes} );
 
-    foreach my $b1 (@hashes) {
-    	print ".";
-        if ( $pbkdf2->validate( $prefix . $b1, $key ) ) {
-            return $key;
+    my $hash_class = 'HMACSHA2';
+    my $sha_size   = 512;
+    my $salt_len   = 10;
+    my @balik_data;
+    my $prefix = '{X-PBKDF2}HMACSHA2+512:AAAD6A:';
+
+    my $pbkdf2 = Crypt::PBKDF2->new(
+        hash_class => $hash_class,
+        hash_args  => { sha_size => $sha_size },
+        salt_len   => $salt_len
+    );
+
+    $| = 1;
+    foreach my $enc_hash ( @{$hashes} ) {
+        if ( $pbkdf2->validate( $prefix . $enc_hash, $key ) ) {
+            return ( split( "-", $key ) )[-1];
         }
+
+        $i++;
     }
     return 0;
 }
+
+
 print "Serial: $serial\n";
 # zo $serialu potrebujem extraction kluc vygenerovat
 my $extraction = Mopslig::Generator::generate_key_for_lic_extraction($serial);
-if ( validate($extraction) ) {
+print "vo validate-lic som ziskal toto ako extraction key: $extraction\n";
+if ( validate($extraction,\@hashes) ) {
     my $cipher = Crypt::CBC->new(
         -key    => $extraction,
         -cipher => "Crypt::Rijndael"
@@ -105,6 +112,7 @@ if ( validate($extraction) ) {
     my $dec = $cipher->decrypt($enc_lic);
 
     print $dec;
+    exit(0);
 # {
 #           'valid_since' => '2016-08',
 #           'kbsusers' => {

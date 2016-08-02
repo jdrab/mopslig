@@ -20,12 +20,15 @@ use strict;
 
 use File::Slurp;
 my $build_id_file = 'data/build-id';
+unless(-f $build_id_file ) {
+	print "Missing build-id file\n";
+	exit(1);
+}
 my $extraction_hashes_file = 'data/extraction-hashes.txt';
 
-my $validate_template_file = 'validate-lic.pl';
+my $validate_template_file = 'validate-lic.template';
 my $validate_file = 'validate.pl';
 my $validate_binary = 'validate-lic';
-
 
 my $build_id = File::Slurp::read_file($build_id_file);
 my $validate_content = File::Slurp::read_file($validate_template_file);

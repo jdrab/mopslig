@@ -76,13 +76,15 @@ sub generate_hashes_for_package {
         
         $hash =~ s/^$prehash//g;
         # add hash for license extraction
-        print "Serial ktory ide do generate_key_for_lic_extraction: $serial\n";
-        my $extraction_key = generate_key_for_lic_extraction($serial);
-        print "Extraction_key pred: $extraction_key\n";
+        # print "Serial ktory ide do generate_key_for_lic_extraction: $serial\n";
+        my $extraction_key = generate_key_for_lic_extraction($full);
+        # print "Extraction_key pred: $extraction_key\n";
         my $extraction_hash = $pbkdf2->generate($extraction_key);
         
         $extraction_hash =~ s/^$prehash//g;
-        print "Extraction_key po: $extraction_key\n".
+        # print "Extraction_key po: $extraction_key\n".
+        
+print "Key: $serial\nHash pre key: $hash\nExtraction key: $extraction_key\nExtarction key hash: $extraction_hash\n===================\n";
         push( @pkg_data, ( $full . "\t" . $hash ."\t". $extraction_key."\t".$extraction_hash) );
 
         print "." unless $nodots;

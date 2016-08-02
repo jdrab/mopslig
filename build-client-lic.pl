@@ -21,6 +21,10 @@ use strict;
 use File::Slurp;
 
 my $build_id_file = 'data/build-id';
+unless ( -f $build_id_file ) {
+	print "Missing build-id file\n";
+	exit(1);
+}
 my $build_id = File::Slurp::read_file($build_id_file);
 my $lic_generator_template = 'client_lic.template';
 my $lic_generator_binary = 'client-lic';

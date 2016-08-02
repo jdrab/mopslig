@@ -25,6 +25,10 @@ my $verify_file = 'verify.pl';
 my $verify_binary = 'verify-lic';
 # file where the build id is stored - simple localtime output
 my $build_id_file = 'data/build-id';
+unless(-f $build_id_file ) {
+	print "Missing build id file\n";
+	exit(1);
+}
 my $verify_hashes_file = 'data/verify-hashes.txt';
 my $extraction_keys_file = 'data/extraction-keys.txt';
 

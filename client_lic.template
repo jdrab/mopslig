@@ -35,7 +35,7 @@ use Mopslig::Licensing::Core;
 #FIXME: remove data dumper
 use Data::Dumper;
 
-my $default_license_key = 'START-DE12-FA34-UL56-T789';
+# my $default_license_key = 'START-DE12-FA34-UL56-T789';
 my $key_file = './key.lic';
 
 =pod
@@ -81,16 +81,20 @@ $0\t--generate\tGenerate new license
 Exit codes:
 
 0   Success
-
-3	License file does not exist - only used when refreshing license
+1   Error: file key.lic does not exist
+3   Eroor: output file does not exist - only used when refreshing license
 
 EOL
 }
 
 my $products     = qq(MOPSLIG_LICSENSE_CONFIG);
 my $product_data = JSON::XS->new->utf8->decode($products);
+unless( -f $key_file ) {
+    print "Missing key.lic file\n";
+    exit(1);
+}
 
-my $key_lic = -e $key_file ? File::Slurp::read_file($key_file) : $default_license_key;
+my $key_lic = File::Slurp::read_file($key_file);
 chomp($key_lic);
 print "KEY_LIC:".$key_lic."\n";
 my $lic
@@ -111,8 +115,9 @@ if ($refresh) {
 }
 
 $lic->{key} = $key_lic;
+print "Key, ktory ide do generate_for_lic_extraction: $key_lic mal by byt sj s prefixom\n";
 my $ekey = Mopslig::Generator::generate_key_for_lic_extraction($key_lic);
-print "encryption key: $ekey\n";
+print "Key for license extraction: $ekey\n";
 my $lic_json = JSON::XS->new->encode($lic);
 
 use Crypt::CBC;

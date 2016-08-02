@@ -84,46 +84,37 @@ my @hashes = qw(
 MOPSLIG_VERIFY_HASHES
     );
 
-my $hash_class = 'HMACSHA2';
-my $sha_size   = 512;
-my $salt_len   = 10;
-my @balik_data;
-my $prefix = '{X-PBKDF2}HMACSHA2+512:AAAD6A:';
-
-my $pbkdf2 = Crypt::PBKDF2->new(
-    hash_class => $hash_class,
-    hash_args  => { sha_size => $sha_size },
-    salt_len   => $salt_len
-);
-
-my $i = 1;
 
 sub validate {
-    my $key = shift;
-    my $i   = 0;
-    my $sum = scalar(@hashes);
+    my $key    = shift;
+    my $hashes = shift;
+    my $i      = 0;
+    my $sum    = scalar( @{$hashes} );
+
+    my $hash_class = 'HMACSHA2';
+    my $sha_size   = 512;
+    my $salt_len   = 10;
+    my @balik_data;
+    my $prefix = '{X-PBKDF2}HMACSHA2+512:AAAD6A:';
+
+    my $pbkdf2 = Crypt::PBKDF2->new(
+        hash_class => $hash_class,
+        hash_args  => { sha_size => $sha_size },
+        salt_len   => $salt_len
+    );
 
     $| = 1;
-    foreach my $b1 (@hashes) {
-
-        unless ( $quiet) {
-            print "\r";
-            printf("%d", ( $i* 100 / $sum )+1 );
-            print "%";
-        }
-
-        if ( $pbkdf2->validate( $prefix . $b1, $key ) ) {
-            print "\r\r100%" unless $quiet;
-            return ( split( "-", $key ) )[-1]    
+    foreach my $enc_hash ( @{$hashes} ) {
+        if ( $pbkdf2->validate( $prefix . $enc_hash, $key ) ) {
+            return ( split( "-", $key ) )[-1];
         }
 
         $i++;
     }
-    print "\r\r100%" unless $quiet;
     return 0;
 }
 
-if( validate($serial) ) {
+if( validate($serial,\@hashes) ) {
     print "\nVALID $serial\n" unless $quiet;
     exit 0;
 } else {
