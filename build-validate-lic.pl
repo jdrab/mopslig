@@ -27,13 +27,18 @@ unless(-f $build_id_file ) {
 my $extraction_hashes_file = 'data/extraction-hashes.txt';
 
 my $validate_template_file = 'validate-lic.template';
-my $validate_file = 'validate.pl';
+my $validate_file = 'validate-lic.tmp';
 my $validate_binary = 'validate-lic';
 
-my $build_id = File::Slurp::read_file($build_id_file);
-my $validate_content = File::Slurp::read_file($validate_template_file);
+unless ( -f $validate_template_file || -f $extraction_hashes_file) {
+	print "Missing validate-lic.template or extraction-hashes file.\n";
+	exit(1);
+}
 
+my $validate_content = File::Slurp::read_file($validate_template_file);
 my $extraction_hashes = File::Slurp::read_file($extraction_hashes_file);
+
+my $build_id = File::Slurp::read_file($build_id_file);
 
 $validate_content =~ s/"MOPSLIG_BUILD_ID"/"$build_id"/g;
 $validate_content =~ s/MOPSLIG_EXTRACTION_HASHES/$extraction_hashes/g;
@@ -46,5 +51,4 @@ unless ( system(@build_args) == 0 ) {
  	print "Unable to build: $? \n";
  	exit(1);
   }
-  print "Done\n";
   exit(0);

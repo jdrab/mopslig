@@ -166,10 +166,7 @@ foreach my $key ( keys( %{ $product_data->{licenses}{types} } ) ) {
 }
 
 my @splited_default = split('-',$default_license_key);
-# my @dk = @splited_default;
 my @default_key = ( join('-',splice(@splited_default,1)) );
-# print Dumper($splited_default[0]."-");
-# print Dumper(\@default_key);exit;
 my @default_package_data = Mopslig::Generator::generate_hashes_for_package(\@default_key,$splited_default[0]."-");
 
 my (@d_serials,@d_verify_hashes,@d_extraction_keys,@d_extraction_hashes);

@@ -24,7 +24,7 @@ use File::Slurp;
 use Crypt::PBKDF2::Hash::HMACSHA2;
 use Getopt::Long;
 
-GetOptions('build-id'=>\my $build_id, 'serial=s' => \my $serial ,'quiet'=>\my $quiet, 'help'=>\my $help);
+GetOptions('build-id'=>\my $build_id, 'key=s' => \my $key , 'help'=>\my $help);
 
 =pod
  
@@ -37,15 +37,15 @@ Verify license key
 Usage: 
 
 $0          --serial    key to verify
-            --quiet     does not output anything
+            --build-id  display build-id
 
 =head2 Exit codes
         0 - key is valid
         1 - key is invalid
 =cut
 if( $help ) {
-    usage();
-    exit;
+    print usage();
+    exit(0);
 }
 
 
@@ -56,25 +56,26 @@ if( $build_id ) {
     exit;
 }
 
-unless ($serial) {
-    usage();
-    exit;
+unless ($key) {
+    print usage();
+    exit(2);
 }
 
 sub usage {
     print <<EOL;
 
-Verify license key
+Verify license file
 
 Usage:
 
-$0\t--serial \tkey to verify
-\t\t--quiet \tdoes not output anything
+$0\t--key \tkey to verify
+\t\t--buid-id\tdisplay build-id
 
 Exit codes:
 
-0   serial is valid
-1   serial is invalid
+0   key is valid
+1   key is invalid
+2   missing key
 
 EOL
 }
@@ -85,7 +86,7 @@ MOPSLIG_VERIFY_HASHES
     );
 
 
-sub validate {
+sub verify_key {
     my $key    = shift;
     my $hashes = shift;
     my $i      = 0;
@@ -103,21 +104,20 @@ sub validate {
         salt_len   => $salt_len
     );
 
-    $| = 1;
     foreach my $enc_hash ( @{$hashes} ) {
-        if ( $pbkdf2->validate( $prefix . $enc_hash, $key ) ) {
-            return ( split( "-", $key ) )[-1];
-        }
+        my $full = $prefix.$enc_hash;
 
-        $i++;
+        if ( $pbkdf2->validate($full, $key ) ) {
+            return $key;
+        }
     }
-    return 0;
+    
 }
 
-if( validate($serial,\@hashes) ) {
-    print "\nVALID $serial\n" unless $quiet;
-    exit 0;
+
+
+if( verify_key($key,\@hashes) ) {
+   exit(0);
 } else {
-    print "\nINVALID $serial\n" unless $quiet;
-    exit 1;
+    exit(1);
 }

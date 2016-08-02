@@ -32,22 +32,26 @@ use Crypt::PBKDF2::Hash::HMACSHA2;
 
 use Mopslig::Licensing::Core;
 
-#FIXME: remove data dumper
-use Data::Dumper;
-
 # my $default_license_key = 'START-DE12-FA34-UL56-T789';
-my $key_file = './key.lic';
+# my $key_file = './key.lic';
 
 =pod
 Generates client license file(client.lic) from MOPSLIG_LICENSE_CONFIGbuild
 =cut
 
 GetOptions(
+    'help'=>\my $help,
+    'key=s'=> \my $key,
     'generate'   => \my $generate,
     'refresh' => \my $refresh,
     'output=s'=> \my $output,
     'build-id'   => \my $build_id
 );
+
+if( $help ) {
+    print usage();
+    exit;
+}
 
 my $build_id_val = "MOPSLIG_BUILD_ID";
 
@@ -57,8 +61,8 @@ if ($build_id) {
 }
 
 unless ( ($generate || $refresh) && $output) {
-    usage();
-    exit;
+    print usage();
+    exit(1);
 }
 
 if( $refresh && ! -e $output ) {
@@ -72,33 +76,43 @@ Generate client license object
 
 Usage:
 
-$0\t--generate\tGenerate new license
+$0\t--key\tLicense key
+\t\t--generate\tGenerate new license
 \t\t--refresh\tGenerate only if actual license file is invalid
 \t\t--output \tlicense file (client.lic)
 
 \t\t--build-id \tprint build-id
+\t\t--help\tdisplay this help
 
 Exit codes:
 
-0   Success
-1   Error: file key.lic does not exist
-3   Eroor: output file does not exist - only used when refreshing license
+0   - Success
+1   - Error: Wrong parameters
+2   - Error: invalid key (type)
+3   - Error: output file does not exist - only used when refreshing license
+
 
 EOL
 }
 
 my $products     = qq(MOPSLIG_LICSENSE_CONFIG);
 my $product_data = JSON::XS->new->utf8->decode($products);
-unless( -f $key_file ) {
-    print "Missing key.lic file\n";
+
+unless( $key) { 
+    print "Missing --key\n";
     exit(1);
 }
+chomp($key);
 
-my $key_lic = File::Slurp::read_file($key_file);
-chomp($key_lic);
-print "KEY_LIC:".$key_lic."\n";
+#first part of key aka $type
+my $type = lc( ( split( '-', $key ) )[0] );
+
+unless( exists( $product_data->{licenses}{types}{$type})) {
+    exit(2);
+}
+
 my $lic
-    = $product_data->{licenses}{types}{ lc( ( split( '-', $key_lic ) )[0] ) };
+    = $product_data->{licenses}{types}{$type};
 
 if ($refresh) {
     my ( undef, undef, undef, undef, $month, $year ) = localtime;
@@ -110,14 +124,16 @@ if ($refresh) {
     my ( $valid_year, $valid_month ) = split( "-", $valid_until );
 
     if ( $valid_year >= $year && $valid_month >= $month ) {
-        exit(0);
+        #print "exit 0";
+        #exit(0);
+        die('zamysli sa co si chcel');
     }
 }
 
-$lic->{key} = $key_lic;
-print "Key, ktory ide do generate_for_lic_extraction: $key_lic mal by byt sj s prefixom\n";
-my $ekey = Mopslig::Generator::generate_key_for_lic_extraction($key_lic);
-print "Key for license extraction: $ekey\n";
+$lic->{key} = $key;
+
+my $ekey = Mopslig::Generator::generate_key_for_lic_extraction($key);
+chomp($ekey);
 my $lic_json = JSON::XS->new->encode($lic);
 
 use Crypt::CBC;
@@ -131,3 +147,4 @@ my $cipher = Crypt::CBC->new(
 my $enc = $cipher->encrypt($lic_json);
 
 File::Slurp::write_file( $output, { binmode => ':raw' }, $enc );
+exit(0);

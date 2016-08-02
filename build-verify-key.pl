@@ -20,33 +20,41 @@ use strict;
 
 use File::Slurp;
 
-my $verify_file_tpl = 'verify.template';
-my $verify_file = 'verify.pl';
-my $verify_binary = 'verify-lic';
-# file where the build id is stored - simple localtime output
-my $build_id_file = 'data/build-id';
-unless(-f $build_id_file ) {
-	print "Missing build id file\n";
-	exit(1);
+my $verify_file_tpl = 'verify-key.template';
+unless ( -f $verify_file_tpl ) {
+    print "Missing veirify.template\n";
+    exit(1);
 }
-my $verify_hashes_file = 'data/verify-hashes.txt';
+
+my $verify_file   = 'verify-key.tmp';
+my $verify_binary = 'verify-key';
+my $build_id_file = 'data/build-id';
+unless ( -f $build_id_file ) {
+    print "Missing build id file\n";
+    exit(1);
+}
+
+my $verify_hashes_file   = 'data/verify-hashes.txt';
 my $extraction_keys_file = 'data/extraction-keys.txt';
 
-my $build_id = File::Slurp::read_file($build_id_file);
+unless ( -f $verify_hashes_file || -f $extraction_keys_file ) {
+    print "Missing verify hashes or extraction keys file.\n";
+    exit(1);
+}
+
+my $build_id       = File::Slurp::read_file($build_id_file);
 my $verify_content = File::Slurp::read_file($verify_file_tpl);
-my $verify_hashes = File::Slurp::read_file($verify_hashes_file);
+my $verify_hashes  = File::Slurp::read_file($verify_hashes_file);
 
 $verify_content =~ s/"MOPSLIG_BUILD_ID"/"$build_id"/g;
 $verify_content =~ s/MOPSLIG_VERIFY_HASHES/$verify_hashes/g;
 
-File::Slurp::write_file($verify_file,$verify_content);
+File::Slurp::write_file( $verify_file, $verify_content );
 
-my @build_args = ("pp","./".$verify_file, "--output=$verify_binary");
+my @build_args = ( "pp", "./" . $verify_file, "--output=$verify_binary" );
 
 unless ( system(@build_args) == 0 ) {
-	print "Unable to build: $? \n";
-	exit(1);
- }
- print "Done\n";
- exit(0);
-
+    print "Unable to build: $? \n";
+    exit(1);
+}
+exit(0);

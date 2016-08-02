@@ -26,10 +26,15 @@ unless ( -f $build_id_file ) {
 	exit(1);
 }
 my $build_id = File::Slurp::read_file($build_id_file);
-my $lic_generator_template = 'client_lic.template';
+my $lic_generator_template = 'client-lic.template';
 my $lic_generator_binary = 'client-lic';
-my $lic_generator_file = 'client_lic.pl';
+my $lic_generator_file = 'client-lic.tmp';
 my $config = 'config.json';
+
+unless ( -f $config || -f $lic_generator_template) {
+	print "Missing config file or client license template file.\n";
+	exit(1);
+}
 
 my $config_content = File::Slurp::read_file($config);
 my $lic_content = File::Slurp::read_file($lic_generator_template);
@@ -45,7 +50,4 @@ unless ( system(@build_args) == 0 ) {
 	print "Unable to build: $? \n";
 	exit(1);
  }
- print "Done\n";
  exit(0);
-
-

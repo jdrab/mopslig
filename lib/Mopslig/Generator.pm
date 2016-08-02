@@ -16,8 +16,6 @@ key format: 12345-12345-12345
 
 sub generate_key_for_lic_extraction {
     my $serial = shift || croak("Missing serial number");
-    use Data::Dumper;
-    print Dumper($serial);
     ( my $shan = sha1_hex($serial) ) =~ s/[a-z]//gi;
     return join( "-", ( unpack( "(A5)*", $shan ) )[ 0 .. 2 ] );
 }
@@ -84,7 +82,7 @@ sub generate_hashes_for_package {
         $extraction_hash =~ s/^$prehash//g;
         # print "Extraction_key po: $extraction_key\n".
         
-print "Key: $serial\nHash pre key: $hash\nExtraction key: $extraction_key\nExtarction key hash: $extraction_hash\n===================\n";
+        # print "Key: $full\nHash pre key: $hash\nExtraction key: $extraction_key\nExtarction key hash: $extraction_hash\n===================\n";
         push( @pkg_data, ( $full . "\t" . $hash ."\t". $extraction_key."\t".$extraction_hash) );
 
         print "." unless $nodots;
