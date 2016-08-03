@@ -25,7 +25,7 @@ $ ./build_all.sh -y
 - mopslig generates allways one default START-DE12-FA34-UL56-T789 key, because i need it (don't ask why)
 - save one of those generated keys to key.lic file
 - run ./test_it.pl
-```perl
+```sh
 $ ./test_it.pl
 ```
 
