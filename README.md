@@ -15,19 +15,50 @@ in which all license types are stored.
 - perl Crypt::PBKDF2;
 - perl Crypt::PBKDF2::Hash::HMACSHA2;
 
-## Usage:
+## Usage - kinda automatic
 - edit config.json
-- run 
+- run ./build_all.sh
+```sh
+$ ./build_all.sh -y
+```
+- pick one of generated "serial numbers" from data/serials.txt 
+- mopslig generates allways one default START-DE12-FA34-UL56-T789 key, because i need it (don't ask why)
+- save one of those generated keys to key.lic file
+- run ./test_it.pl
+```perl
+$ ./test_it.pl
+```
+
+## How do i remove this mess?
+- all generated files including key.lic can be removed by ./remove_files.sh, just run 
+```sh
+$ ./remove_files.sh -y
+```
+or run these commands in the directory 
 
 ```sh
-$./mopslig.pl sure
+  rm -rf ./data
+  unlink ./client.lic
+  unlink ./key.lic
+  rm -rf ./*.tmp
+  unlink ./client-lic
+  unlink ./validate-lic
+  unlink ./verify-key
+  unlink ./imprint-lic
 ```
-- this will generate "keys/serial numbers", hashes, extraction keys 
+
+## If you don't like automagic
+- run  mopslig.pl; it will generate "keys/serial numbers", hashes, extraction keys 
 (pseudo keys in this version, clients are offline) and extraction hashes.
   - key - is used as main license key for client
   - key_hash - is generated for key and is used to verify that key is valid. (PBKDF2 HMACSHA2 512)
   - extraction_key - is extracted from key by a retarded function (but it works for me)
   - extraction_hash - this is the same ask key_has is to key, except it is generated for extraction_key
+
+
+```sh
+$./mopslig.pl sure
+```
 
 - build binary files 
 ```sh
@@ -72,11 +103,20 @@ process.
     "valid_since": "2016-08",
       "valid_until": "2017-07",
     "amounts": {
-      "basic": 10,
+      "start": 10,
       "plus":  10,
       "premium": 10
     },
     "types": {
+      "start": {
+        "modulename": {
+          "license_amount": 5,
+          "valid_since": "2016-08",
+          "valid_until": "2017-07"
+        },
+        "valid_since": "2016-08",
+        "valid_until": "2017-07"
+      },
       "plus": {
         "modulename": {
           "license_amount": 20,
@@ -94,16 +134,7 @@ process.
         },
         "valid_since": "2016-08",
         "valid_until": "2017-07"
-      },
-      "basic": {
-        "modulename": {
-          "license_amount": 5,
-          "valid_since": "2016-08",
-          "valid_until": "2017-07"
-        },
-        "valid_since": "2016-08",
-        "valid_until": "2017-07"
-      }      
+      }            
     }
   }
 }
