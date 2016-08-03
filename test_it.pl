@@ -31,7 +31,7 @@ my $client_license_file = './client.lic';
 my $validate_lic_bin = './validate-lic';
 
 unless( -f $key_file ) {
-	print "Missing key.lic file, plese fix it";
+	print "Missing key.lic file, plese fix it\n";
 	exit;
 }
 

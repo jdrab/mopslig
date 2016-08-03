@@ -6,14 +6,15 @@ in which all license types are stored.
 
 ## Prerequisites
 - pp - perl PAR packager
-- perl File::Slurp;
-- perl JSON::XS;
-- perl Getopt::Long;
-- perl Time::Piece;
-- perl Digest::SHA;
-- perl Digest::SHA1;
-- perl Crypt::PBKDF2;
-- perl Crypt::PBKDF2::Hash::HMACSHA2;
+- perl File::Slurp
+- perl JSON::XS
+- perl Getopt::Long
+- perl Time::Piece
+- perl Digest::SHA
+- perl Digest::SHA1
+- perl Crypt::PBKDF2
+- perl Crypt::PBKDF2::Hash::HMACSHA2
+- perl B::Deobfuscate
 
 ## Usage - kinda automatic
 - edit config.json

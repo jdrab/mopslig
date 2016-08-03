@@ -34,7 +34,7 @@ unless ( -f $build_id_file ) {
     exit(1);
 }
 
-my $verify_hashes_file   = 'data/verify-hashes.txt';
+my $verify_hashes_file = 'data/verify-hashes.txt';
 
 unless ( -f $verify_hashes_file ) {
     print "Missing verify hashes or extraction keys file.\n";
@@ -50,7 +50,11 @@ $verify_content =~ s/MOPSLIG_VERIFY_HASHES/$verify_hashes/g;
 
 File::Slurp::write_file( $verify_file, $verify_content );
 
-my @build_args = ( "pp", "./" . $verify_file, "--output=$verify_binary" );
+my @build_args = (
+    "pp",                      "-a=lib/",
+    "-f=PodStrip",             "./" . $verify_file,
+    "--output=$verify_binary", "-z=9"
+);
 
 unless ( system(@build_args) == 0 ) {
     print "Unable to build: $? \n";

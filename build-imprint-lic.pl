@@ -22,24 +22,28 @@ use File::Slurp;
 
 my $build_id_file = 'data/build-id';
 unless ( -f $build_id_file ) {
-	print "Missing build-id file\n";
-	exit(1);
+    print "Missing build-id file\n";
+    exit(1);
 }
-my $build_id = File::Slurp::read_file($build_id_file);
+my $build_id      = File::Slurp::read_file($build_id_file);
 my $read_template = 'imprint-lic.template';
-my $read_binary = 'imprint-lic';
-my $read_file = 'imprint-lic.tmp';
+my $read_binary   = 'imprint-lic';
+my $read_file     = 'imprint-lic.tmp';
 
 my $read_content = File::Slurp::read_file($read_template);
 
 $read_content =~ s/"MOPSLIG_BUILD_ID"/"$build_id"/g;
 
-File::Slurp::write_file($read_file,$read_content);
+File::Slurp::write_file( $read_file, $read_content );
 
-my @build_args = ("pp","./".$read_file, "--output=$read_binary");
+my @build_args = (
+    "pp",                    "-a=lib/",
+    "-f=PodStrip",           "./" . $read_file,
+    "--output=$read_binary", "-z=9"
+);
 
 unless ( system(@build_args) == 0 ) {
-	print "Unable to build: $? \n";
-	exit(1);
- }
- exit(0);
+    print "Unable to build: $? \n";
+    exit(1);
+}
+exit(0);

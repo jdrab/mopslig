@@ -22,32 +22,36 @@ use File::Slurp;
 
 my $build_id_file = 'data/build-id';
 unless ( -f $build_id_file ) {
-	print "Missing build-id file\n";
-	exit(1);
+    print "Missing build-id file\n";
+    exit(1);
 }
-my $build_id = File::Slurp::read_file($build_id_file);
+my $build_id               = File::Slurp::read_file($build_id_file);
 my $lic_generator_template = 'client-lic.template';
-my $lic_generator_binary = 'client-lic';
-my $lic_generator_file = 'client-lic.tmp';
-my $config = 'config.json';
+my $lic_generator_binary   = 'client-lic';
+my $lic_generator_file     = 'client-lic.tmp';
+my $config                 = 'config.json';
 
-unless ( -f $config || -f $lic_generator_template) {
-	print "Missing config file or client license template file.\n";
-	exit(1);
+unless ( -f $config || -f $lic_generator_template ) {
+    print "Missing config file or client license template file.\n";
+    exit(1);
 }
 
 my $config_content = File::Slurp::read_file($config);
-my $lic_content = File::Slurp::read_file($lic_generator_template);
+my $lic_content    = File::Slurp::read_file($lic_generator_template);
 
 $lic_content =~ s/"MOPSLIG_BUILD_ID"/"$build_id"/g;
 $lic_content =~ s/MOPSLIG_LICSENSE_CONFIG/$config_content/g;
 
-File::Slurp::write_file($lic_generator_file,$lic_content);
+File::Slurp::write_file( $lic_generator_file, $lic_content );
 
-my @build_args = ("pp","./".$lic_generator_file, "--output=$lic_generator_binary");
+my @build_args = (
+    "pp", "-a=lib/", "-f=PodStrip",
+    "./" . $lic_generator_file,
+    "--output=$lic_generator_binary", "-z=9"
+);
 
 unless ( system(@build_args) == 0 ) {
-	print "Unable to build: $? \n";
-	exit(1);
- }
- exit(0);
+    print "Unable to build: $? \n";
+    exit(1);
+}
+exit(0);

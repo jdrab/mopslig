@@ -31,6 +31,8 @@ use Cwd qw(abs_path);
 use lib dirname( abs_path $0) . '/lib';
 
 use Mopslig::Generator;
+use Mopslig::Licensing::Core;
+use Time::Piece;
 use Data::Dumper;
 
 use JSON::XS;
