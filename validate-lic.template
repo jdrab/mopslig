@@ -1,4 +1,20 @@
-#!/usr/bin/perl env
+#!/usr/bin/env perl
+#
+#    This file is part of Mopslig.
+#
+#    Mopslig is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Mopslig is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Mopslig.  If not, see <http://www.gnu.org/licenses/>.
+#
 use warnings;
 use strict;
 use Getopt::Long;
@@ -112,7 +128,7 @@ if ( validate_lic( $extraction, \@hashes ) ) {
         $license_file = $lic_file;
     }
 
-    my $enc_lic = File::Slurp::read_file( $license_file, binmode => ':raw' );
+    my $enc_lic = File::Slurp::read_file( $license_file, { binmode => ':raw' }  );
 
     my $dec = $cipher->decrypt($enc_lic);
 

@@ -18,28 +18,28 @@
 use warnings;
 use strict;
 
-use Crypt::PBKDF2;
 use File::Slurp;
-use Crypt::PBKDF2::Hash::HMACSHA2;
-use Getopt::Long;
 
-my $hash_class = 'HMACSHA2';
-my $sha_size   = 512;
-my $salt_len   = 10;
-my @balik_data;
-my $prefix = '{X-PBKDF2}HMACSHA2+512:AAAD6A:';
+my $build_id_file = 'data/build-id';
+unless ( -f $build_id_file ) {
+	print "Missing build-id file\n";
+	exit(1);
+}
+my $build_id = File::Slurp::read_file($build_id_file);
+my $read_template = 'client-lic.template';
+my $read_binary = 'imprint-lic';
+my $read_file = 'imprint-lic.tmp';
 
-my $pbkdf2 = Crypt::PBKDF2->new(
-    hash_class => $hash_class,
-    hash_args  => { sha_size => $sha_size },
-    salt_len   => $salt_len
-);
-use Data::Dumper;
+my $read_content = File::Slurp::read_file($read_template);
 
-print Dumper(
-    $pbkdf2->validate(
-        "{X-PBKDF2}HMACSHA2+512:AAAD6A:5I/XEEV3fpmz1Q==:2RM2pQcojelJuV5OIyrSwJMX+9HSCCipux22WxgCM4o/FyNn8WprooBd3mNIviziL+3Mz09vuwZXk+7OrDBxcw==",
-        "PREMIUM-KN5W-77DX-C4FG-KT5Z"
-    )
-);
+$read_content =~ s/"MOPSLIG_BUILD_ID"/"$build_id"/g;
 
+File::Slurp::write_file($read_file,$read_content);
+
+my @build_args = ("pp","./".$read_file, "--output=$read_binary");
+
+unless ( system(@build_args) == 0 ) {
+	print "Unable to build: $? \n";
+	exit(1);
+ }
+ exit(0);
