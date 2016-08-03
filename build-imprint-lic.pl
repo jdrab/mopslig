@@ -26,7 +26,7 @@ unless ( -f $build_id_file ) {
 	exit(1);
 }
 my $build_id = File::Slurp::read_file($build_id_file);
-my $read_template = 'client-lic.template';
+my $read_template = 'imprint-lic.template';
 my $read_binary = 'imprint-lic';
 my $read_file = 'imprint-lic.tmp';
 

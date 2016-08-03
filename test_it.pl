@@ -17,17 +17,28 @@
 #
 use warnings;
 use strict;
+use File::Slurp;
+use JSON::XS;
 
 my $key_file       = './key.lic';
-my $verify_key_bin = './verify-key';
+my $imprint_file 	= './imprint.lic';
 
+my $verify_key_bin = './verify-key';
+my $imprint_lic_bin = './imprint-lic';
 my $client_lic_bin      = './client-lic';
 my $client_license_file = './client.lic';
 
 my $validate_lic_bin = './validate-lic';
 
-use File::Slurp;
-use Data::Dumper;
+unless( -f $key_file ) {
+	print "Missing key.lic file, plese fix it";
+	exit;
+}
+
+unless( -f $imprint_file) {
+	print "Missing imprint.lic file.\nPlease run\n./validate-lic --validate";
+	exit;
+}
 
 my $key = File::Slurp::read_file($key_file);
 
@@ -50,4 +61,8 @@ system( $validate_lic_bin, '--key', $key, '--license', $client_license_file,
         . " \n" );
 print
     "CLIENT LICENSE VALIDATED -- $client_license_file validated against key $key \n";
+
+system( $imprint_lic_bin, "--key", $key, '--imprint-file', $imprint_file) == 0
+	or die("UNABLE TO READ LICENSE IMPRINT");
+
 print "\nDone\n";

@@ -142,7 +142,7 @@ if ( validate_lic( $extraction, \@hashes ) ) {
     exit(0);
 }
 else {
-    exit(7);
+    exit(1);
 }
 
 sub usage {

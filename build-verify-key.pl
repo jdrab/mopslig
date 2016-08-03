@@ -35,9 +35,8 @@ unless ( -f $build_id_file ) {
 }
 
 my $verify_hashes_file   = 'data/verify-hashes.txt';
-my $extraction_keys_file = 'data/extraction-keys.txt';
 
-unless ( -f $verify_hashes_file || -f $extraction_keys_file ) {
+unless ( -f $verify_hashes_file ) {
     print "Missing verify hashes or extraction keys file.\n";
     exit(1);
 }

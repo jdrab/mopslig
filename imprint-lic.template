@@ -45,12 +45,13 @@ if ($build_id) {
 
 unless ($key) {
     print "Key is required.\n";
-    # print usage();
+    print usage();
     exit(4);
 }
 
 unless (defined($imprint_file) && -f $imprint_file ) {
     print "License imprint file is missing.\n";
+    print usage();
     exit(3);
 }
 
