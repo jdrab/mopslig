@@ -174,7 +174,8 @@ by values from those two files.
 It is used by the perl pp command to build verify-key binary.
 
 ### Todos
-
+  
+  - Testst,tests and moar tests..
   - Improve documentation
   - Add support for --imprint-to in validate-lic
   - Add support for --no-default-key to mopslig.pl 
