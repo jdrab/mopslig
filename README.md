@@ -14,7 +14,6 @@ in which all license types are stored.
 - perl Digest::SHA1
 - perl Crypt::PBKDF2
 - perl Crypt::PBKDF2::Hash::HMACSHA2
-- perl B::Deobfuscate
 
 ## Usage - kinda automatic
 - edit config.json
