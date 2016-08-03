@@ -51,9 +51,10 @@ $ ./validate-lic --validate
 ```
 
 - read imprint.lic file
+
 ```sh
 $ ./imprint-lic --key YOUR_LICENSE_KEY --imprint-file imprint.lic
-
+```
 
 ### Files
 
@@ -71,13 +72,13 @@ process.
     "valid_since": "2016-08",
       "valid_until": "2017-07",
     "amounts": {
-      "start": 10,
+      "basic": 10,
       "plus":  10,
       "premium": 10
     },
     "types": {
       "plus": {
-        "kbsusers": {
+        "modulename": {
           "license_amount": 20,
           "valid_since": "2016-08",
           "valid_until": "2017-07"
@@ -86,7 +87,7 @@ process.
         "valid_until": "2017-07"
       },
       "premium": {
-        "kbsusers": {
+        "modulename": {
           "license_amount": 50,
           "valid_since": "2016-08",
           "valid_until": "2017-07"
@@ -94,8 +95,8 @@ process.
         "valid_since": "2016-08",
         "valid_until": "2017-07"
       },
-      "start": {
-        "kbsusers": {
+      "basic": {
+        "modulename": {
           "license_amount": 5,
           "valid_since": "2016-08",
           "valid_until": "2017-07"
@@ -130,7 +131,7 @@ Usage:   ./mopslig.pl sure      --no-dots       --debug
 by values from those two files.
 
 #### client-lic.template
-> Almost complete perl file only sompe parts are replaced from generated files in data/ foler.
+> Almost complete perl file only sompe parts are replaced from generated files in data/ folder.
 
 #### client-lic.tmp
 > This file exist only after ./build-client-lic.pl ran - it's complete perl script. 
@@ -144,7 +145,7 @@ It is used by the perl pp command to build client-lic binary.
 > Reads data/build-id and replaces MOPSLIG_BUILD_ID in imprint-lic.template.
 
 #### imprint-lic.template
-> Almost complete perl file only sompe parts are replaced from generated files in data/ foler.
+> Almost complete perl file only sompe parts are replaced from generated files in data/ folder.
 
 #### imprint-lic.tmp
 > This file exist only after ./build-imprint-lic.pl ran - it's complete perl script. 
@@ -155,7 +156,7 @@ It is used by the perl pp command to build imprint-lic binary.
 by values from those two files.
 
 #### validate-lic.template
-> Almost complete perl file only sompe parts are replaced from generated files in data/ foler.
+> Almost complete perl file only sompe parts are replaced from generated files in data/ folder.
 
 #### validate-lic.tmp
 > This file exist only after ./build-validate-lic.pl ran - it's complete perl script. 
@@ -166,7 +167,7 @@ It is used by the perl pp command to build validate-lic binary.
 by values from those two files.
 
 #### verify-key.template
-> Almost complete perl file only sompe parts are replaced from generated files in data/ foler.
+> Almost complete perl file only sompe parts are replaced from generated files in data/ folder.
 
 #### verify-key.tmp
 > This file exist only after ./build-verify-key.pl ran - it's complete perl script. 
