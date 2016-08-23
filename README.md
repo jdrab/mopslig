@@ -1,12 +1,15 @@
 # Mopslig - My Open Source License Generator 
 
-These scripts can be used to generate license keys, verifycation hashes,
+This project can be used to generate license keys, verifycation hashes,
 extraction "pseudo" keys, extraction hashes and a license object,
 in which all license types are stored.
+Basically you will get a list of generated 'license keys' and some binary files
+which are able to tell you if your license key is valid, generate some licence for 
+your clients and other stuff. Demo will be also available soon.
 
 ## Prerequisites
 - pp - perl PAR packager
-- perl File::Slurp
+- perl Path::Tiny
 - perl JSON::XS
 - perl Getopt::Long
 - perl Time::Piece
@@ -17,8 +20,9 @@ in which all license types are stored.
 
 ## Usage - kinda automatic
 - edit config.json
-- run ./build_all.sh
+- run build_all.sh
 ```sh
+$ cd bin
 $ ./build_all.sh -y
 ```
 - pick one of generated "serial numbers" from data/serials.txt 
@@ -26,73 +30,79 @@ $ ./build_all.sh -y
 - save one of those generated keys to key.lic file
 - run ./test_it.pl
 ```sh
+$ cd bin
 $ ./test_it.pl
 ```
 
 ## How do i remove this mess?
 - all generated files including key.lic can be removed by ./remove_files.sh, just run 
 ```sh
+$ cd bin
 $ ./remove_files.sh -y
 ```
-or run these commands in the directory 
+or run these commands from the `bin` directory 
 
 ```sh
-  rm -rf ./data
-  unlink ./client.lic
-  unlink ./key.lic
-  rm -rf ./*.tmp
-  unlink ./client-lic
-  unlink ./validate-lic
-  unlink ./verify-key
-  unlink ./imprint-lic
+  rm -rf ../data/*
+  unlink ../tmp/imprint.lic
+  unlink ../tmp/client.lic
+  unlink ../tmp/key.lic
+  rm -rf ../tmp/*.tmp
+  unlink ../build/client-lic
+  unlink ../build/validate-lic
+  unlink ../build/verify-key
+  unlink ../build/imprint-lic
 ```
 
 ## If you don't like automagic
-- run  mopslig.pl; it will generate "keys/serial numbers", hashes, extraction keys 
-(pseudo keys in this version, clients are offline) and extraction hashes.
+  - run  mopslig.pl; it will generate licensing keys, hashes, extraction keys and extraction hashes.
   - key - is used as main license key for client
   - key_hash - is generated for key and is used to verify that key is valid. (PBKDF2 HMACSHA2 512)
-  - extraction_key - is extracted from key by a retarded function (but it works for me)
-  - extraction_hash - this is the same ask key_has is to key, except it is generated for extraction_key
+  - extraction_key - is extracted from key by a retarded function (but hey, it works)
+  - extraction_hash - this is the same as `key_hash` is to the `key`, except it is generated for extraction_key
 
 
 ```sh
-$./mopslig.pl sure
+$ cd bin
+$ ./mopslig.pl sure
 ```
 
-- build binary files 
+- build binary files in the same `bin` directory
 ```sh
- ./build-client-lic.pl
- ./build-imprint-lic.pl
- ./build-validate-lic.pl
- ./build-verify-key.pl 
+$ ./build-client-lic.pl
+$ ./build-imprint-lic.pl
+$ ./build-validate-lic.pl
+$ ./build-verify-key.pl 
  ```
-- pick one of generated serial numbers from data/serials.txt 
+- pick one of generated serial numbers from ../data/serials.txt 
 - generate client.lic and check exit code. You can generate client license file to other file too,
 but you will have to change test_it.pl later. 
 
 ```sh 
-$ ./client-lic --generate --key YOUR_LICENSE_KEY --output client.lic
+$ cd build
+$ ./client-lic --generate --key YOUR_LICENSE_KEY --output client.lic 
 ```
 
 - validate license file ./validate-lic, check exit code 
 
 ```sh 
+$ # run from `build` directory
 $ ./validate-lic --validate
 ```
 
 - read imprint.lic file
 
 ```sh
-$ ./imprint-lic --key YOUR_LICENSE_KEY --imprint-file imprint.lic
+$ # run from `build` directory
+$ ./imprint-lic --key YOUR_LICENSE_KEY --imprint-file path_to_imprint.lic
 ```
 
 ### Files
 
 #### key.lic 
-> your license key should be stored here (mopslig.pl generates one default key - START-DE12-FA34-UL56-T789)
-You don't need to save your license key in this file but binary validate-lic requires this file if 
-you don't use --key when running it. It reads key.lic content and uses it as license key in validation
+> your license key (mopslig.pl generates one default key - START-DE12-FA34-UL56-T789)
+You don't need to save your license key in this file but binary `validate-lic` requires path to this file. 
+It reads key.lic content and uses it as license key in validation
 process.
 
 #### config.json
@@ -141,7 +151,7 @@ process.
 ```
 
 #### mopslig.pl
-> will generate license keys,verification hashes, extraction  "pseudo keys" 
+> will generate license keys,verification hashes, extraction keys 
 and extraction hashes for extracting license files from licenses object
 
 ```sh
@@ -158,57 +168,72 @@ Usage:   ./mopslig.pl sure      --no-dots       --debug
 ```
 
 #### build-client-lic.pl 
-> Reads data/build-id, config.json and replaces MOPSLIG_BUILD_ID and MOPSLIG_LICSENSE_CONFIG
+> Reads the build-id file, config.json. Strings MOPSLIG_BUILD_ID and MOPSLIG_LICSENSE_CONFIG are repalced
 by values from those two files.
 
 #### client-lic.template
-> Almost complete perl file only sompe parts are replaced from generated files in data/ folder.
+> Almost complete perl file. Only sompe parts are replaced with files generated in the `data` folder.
 
 #### client-lic.tmp
-> This file exist only after ./build-client-lic.pl ran - it's complete perl script. 
-It is used by the perl pp command to build client-lic binary.
+> This file is generated by `./build-client-lic.pl` - this is the full perl script source.
+It is used by the perl pp command to build `client-lic` binary.
 
 #### client-lic
-> Binary file build from client-lic.tmp by pp command
-
+> Binary file built from client-lic.tmp by `pp` command
 
 #### build-imprint-lic.pl 
-> Reads data/build-id and replaces MOPSLIG_BUILD_ID in imprint-lic.template.
+> This script will replace the string MOPSLIG_BUILD_ID in file imprint-lic.template with content of `data/build-id` file.
 
 #### imprint-lic.template
-> Almost complete perl file only sompe parts are replaced from generated files in data/ folder.
+> Almost complete perl file. Only sompe parts are replaced with files generated in the `data` folder.
 
 #### imprint-lic.tmp
-> This file exist only after ./build-imprint-lic.pl ran - it's complete perl script. 
-It is used by the perl pp command to build imprint-lic binary.
+> This file is generated by `./build-imprint-lic.pl` - this is the full perl script source.
+It is used by the perl pp command to build `imprint-lic` binary.
 
 #### build-validate-lic.pl 
-> Reads data/build-id, data/extraction-hashes.txt and replaces MOPSLIG_BUILD_ID and MOPSLIG_EXTRACTION_HASHES
-by values from those two files.
+> This script will replace the strings MOPSLIG_BUILD_ID and MOPSLIG_EXTRACTION_HASHES in file validate-lic.template 
+with content of `data/build-id` and `data/extraction-hashes.txt` files.
 
 #### validate-lic.template
-> Almost complete perl file only sompe parts are replaced from generated files in data/ folder.
+> Almost complete perl file. Only sompe parts are replaced with files generated in the `data` folder.
 
 #### validate-lic.tmp
-> This file exist only after ./build-validate-lic.pl ran - it's complete perl script. 
-It is used by the perl pp command to build validate-lic binary.
+> This file is generated by `./build-validate-lic.pl` - this is the full perl script source.
+It is used by the perl pp command to build `validate-lic` binary.
 
 #### build-verify-key.pl 
-> Reads data/build-id, data/verify-hashes.txt and replaces MOPSLIG_BUILD_ID and MOPSLIG_VERIFY_HASHES
-by values from those two files.
+> This script will replace the strings MOPSLIG_BUILD_ID and MOPSLIG_VERIFY_HASHES in file verify-key.template 
+with content of `data/build-id` and `data/verify-hashes.txt` files.
 
 #### verify-key.template
-> Almost complete perl file only sompe parts are replaced from generated files in data/ folder.
+> Almost complete perl file. Only sompe parts are replaced with files generated in the `data` folder.
 
 #### verify-key.tmp
-> This file exist only after ./build-verify-key.pl ran - it's complete perl script. 
-It is used by the perl pp command to build verify-key binary.
+> This file is generated by `./build-verify-key.pl` - this is the full perl script source.
+It is used by the perl pp command to build `verify-key` binary.
+
+
+### Versions
+This project is using semantic versioning;
+
+- Version 0.1.0
+>see [CHANGELOG.md](https://github.com/jdrab/mopslig/blob/master/CHANGELOG.md) for more info
+
+- Version 0.0.2
+>don't remember what changed
+
+- Version 0.0.1
+>init obviously
+
 
 ### Todos
   
   - Testst,tests and moar tests..
   - Improve documentation
-  - Add support for --imprint-to in validate-lic
+  - ~~Add support for --imprint-to in validate-lic~~
   - Add support for --no-default-key to mopslig.pl 
+  - live demo using lxd
+  - web interface (for demo & lazy me)
 
 

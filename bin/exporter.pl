@@ -3,13 +3,18 @@ use strict ;
 use warnings ;
 use IO::Compress::Zip qw(zip $ZipError) ;
 
-use File::Slurp;
+use Path::Tiny qw(path);
 
-my $full_txt = './data/full.txt';
-# read build-id
-my $build_id_file = './data/build-id';
+my $build_dir = '../build';
+
+#FIXME getopt for "data" directory
+my $full_txt = '../data/full.txt';
+
+my $build_id_file = '../data/build-id';
 my @binary_files = qw(client-lic imprint-lic validate-lic verify-key);
-my $export_dir = './export';
+#FIXME getopt for "export" directory
+my $export_dir = '../export';
+
 # customer_zip name is build from $customer_zip $build_id $zip_postfix
 my $customer_zip = $export_dir.'/customer'; 
 # backup_zip name is build from $backup_zip $build_id $zip_postfix
@@ -20,7 +25,10 @@ unless( -f $build_id_file ) {
 	print "Missing build-id file, can not continue.\n";
 	exit(2);
 }
-my $build_id = File::Slurp::read_file($build_id_file);
+
+my $build_id = path($build_id_file)->slurp_utf8;
+# just in case i do this by hand for an unknown reason
+chomp($build_id);
 $zip_postfix = "_$build_id.zip";
 
 $customer_zip .= $zip_postfix;
@@ -45,6 +53,7 @@ print "build-id:\t\t$build_id\n";
 my @_build_ids;
 
 foreach my $b_file (@binary_files) {
+	$b_file = $build_dir.'/'.$b_file;
 	unless( -f $b_file ) {
 		print "$b_file is missing, run ./build-$b_file.pl\n"
 	}

@@ -18,36 +18,30 @@
 use warnings;
 use strict;
 
-use File::Slurp;
-my $build_id_file = 'data/build-id';
+use Path::Tiny qw(path);
+
+my $build_id_file = '../data/build-id';
 unless ( -f $build_id_file ) {
     print "Missing build-id file\n";
     exit(1);
 }
-my $extraction_hashes_file = 'data/extraction-hashes.txt';
 
-my $validate_template_file = 'validate-lic.template';
-my $validate_file          = 'validate-lic.tmp';
-my $validate_binary        = 'validate-lic';
 
-unless ( -f $validate_template_file || -f $extraction_hashes_file ) {
-    print "Missing validate-lic.template or extraction-hashes file.\n";
-    exit(1);
-}
+my $read_template = '../templates/imprint-lic.template';
+my $read_binary   = '../build/imprint-lic';
+my $read_file     = '../tmp/imprint-lic.tmp';
 
-my $validate_content  = File::Slurp::read_file($validate_template_file);
-my $extraction_hashes = File::Slurp::read_file($extraction_hashes_file);
+my $read_content = path($read_template)->slurp_utf8;
 
-my $build_id = File::Slurp::read_file($build_id_file);
+my $build_id = path($build_id_file)->slurp_utf8;
+$read_content =~ s/"MOPSLIG_BUILD_ID"/"$build_id"/g;
 
-$validate_content =~ s/"MOPSLIG_BUILD_ID"/"$build_id"/g;
-$validate_content =~ s/MOPSLIG_EXTRACTION_HASHES/$extraction_hashes/g;
-
-File::Slurp::write_file( $validate_file, $validate_content );
+path($read_file)->spew_utf8($read_content);
 
 my @build_args = (
-    "pp", "-a=lib/", "-f=PodStrip", "./" . $validate_file,
-    "--output=$validate_binary", "-z=9"
+    "pp",                    "-a=../lib/",
+    "-f=PodStrip",           "./" . $read_file,
+    "--output=$read_binary", "-z=9"
 );
 
 unless ( system(@build_args) == 0 ) {

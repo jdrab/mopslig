@@ -18,40 +18,41 @@
 use warnings;
 use strict;
 
-use File::Slurp;
+use Path::Tiny qw(path);
 
-my $verify_file_tpl = 'verify-key.template';
+my $verify_file_tpl = '../templates/verify-key.template';
 unless ( -f $verify_file_tpl ) {
-    print "Missing veirify.template\n";
+    print "Missing verify.template\n";
     exit(1);
 }
 
-my $verify_file   = 'verify-key.tmp';
-my $verify_binary = 'verify-key';
-my $build_id_file = 'data/build-id';
+my $verify_file   = '../tmp/verify-key.tmp';
+my $verify_binary = '../build/verify-key';
+my $build_id_file = '../data/build-id';
+
 unless ( -f $build_id_file ) {
     print "Missing build id file\n";
     exit(1);
 }
 
-my $verify_hashes_file = 'data/verify-hashes.txt';
+my $verify_hashes_file = '../data/verify-hashes.txt';
 
 unless ( -f $verify_hashes_file ) {
     print "Missing verify hashes or extraction keys file.\n";
     exit(1);
 }
 
-my $build_id       = File::Slurp::read_file($build_id_file);
-my $verify_content = File::Slurp::read_file($verify_file_tpl);
-my $verify_hashes  = File::Slurp::read_file($verify_hashes_file);
+my $build_id       = path($build_id_file)->slurp_utf8;
+my $verify_content = path($verify_file_tpl)->slurp_utf8;
+my $verify_hashes  = path($verify_hashes_file)->slurp_utf8;
 
 $verify_content =~ s/"MOPSLIG_BUILD_ID"/"$build_id"/g;
 $verify_content =~ s/MOPSLIG_VERIFY_HASHES/$verify_hashes/g;
 
-File::Slurp::write_file( $verify_file, $verify_content );
+path($verify_file)->spew_utf8($verify_content);
 
 my @build_args = (
-    "pp",                      "-a=lib/",
+    "pp",                      "-a=../lib/",
     "-f=PodStrip",             "./" . $verify_file,
     "--output=$verify_binary", "-z=9"
 );

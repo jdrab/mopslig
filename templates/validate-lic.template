@@ -1,4 +1,9 @@
 #!/usr/bin/env perl
+use warnings;
+use strict;
+
+our $VERSION = '0.1.0';
+
 #
 #    This file is part of Mopslig.
 #
@@ -15,8 +20,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Mopslig.  If not, see <http://www.gnu.org/licenses/>.
 #
-use warnings;
-use strict;
+
 use Getopt::Long;
 use Path::Tiny qw(path);
 use Digest::SHA1;
@@ -33,7 +37,6 @@ use lib dirname( abs_path $0) . '/../lib';
 use Mopslig::Generator;
 use Mopslig::Licensing::Core;
 use Time::Piece;
-use Data::Dumper;
 
 use JSON::XS;
 
@@ -42,10 +45,10 @@ my $lic_file             = './client.lic';
 my $imprint_file_default = './imprint.lic';
 
 GetOptions(
-    'validate'       => \my $validate,       # musi byt zadany
+    'validate'         => \my $validate,       # musi byt zadany
     'imprint-output=s' => \my $imprint_file,
-    'key=s'          => \my $key,
-    'license=s'      => \
+    'key=s'            => \my $key,
+    'license=s'        => \
         my $license_file
     , # ak nezada --license nazvo.lic automaticky sa pokusi otvorit client.lic
     'help'     => \my $help,
@@ -73,10 +76,9 @@ unless ($validate) {
 unless ($key) {
 
     # ak ani ten neexistuje,
-    unless ( -e $key_file ) {
+    unless ( -r $key_file ) {
         exit(4);
     }
-    # $key = File::Slurp::read_file($key_file);
     $key = path($key_file)->slurp_utf8;
 }
 
@@ -131,9 +133,7 @@ if ( validate_lic( $extraction, \@hashes ) ) {
         $license_file = $lic_file;
     }
 
-#    my $enc_lic
-#        = File::Slurp::read_file( $license_file, { binmode => ':raw' } );
-    my $enc_file = path($license_file)->slurp_utf8;
+    my $enc_lic = path($license_file)->slurp_raw;
 
     my $dec = $cipher->decrypt($enc_lic);
 
@@ -145,10 +145,7 @@ if ( validate_lic( $extraction, \@hashes ) ) {
     unless ($imprint_file) {
         $imprint_file = $imprint_file_default;
     }
-
-    #File::Slurp::write_file( $imprint_file, $cip->encrypt($dec) );
-    path($imprint_file)->spew_utf8($dec);
-
+    path($imprint_file)->spew_raw( $cip->encrypt($dec) );
     exit(0);
 }
 else {

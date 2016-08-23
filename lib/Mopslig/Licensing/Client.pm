@@ -4,7 +4,7 @@ use strict;
 
 use Time::Piece;
 use Data::Dumper;
-# use Digest::SHA qw(hmac_sha256_hex);
+
 use Mopslig::Generator;
 
 sub get_private_key {

@@ -17,31 +17,27 @@
 #
 use warnings;
 use strict;
-use File::Slurp;
+use Path::Tiny qw(path);
 use JSON::XS;
 
-my $key_file       = './key.lic';
-my $imprint_file 	= './imprint.lic';
+my $default_key     = 'START-DE12-FA34-UL56-T789';
+my $key_file       = '../tmp/key.lic';
+my $imprint_file 	= '../tmp/imprint.lic';
 
-my $verify_key_bin = './verify-key';
-my $imprint_lic_bin = './imprint-lic';
-my $client_lic_bin      = './client-lic';
-my $client_license_file = './client.lic';
+my $verify_key_bin = '../build/verify-key';
+my $imprint_lic_bin = '../build/imprint-lic';
+my $client_lic_bin      = '../build/client-lic';
+my $client_license_file = '../tmp/client.lic';
 
-my $validate_lic_bin = './validate-lic';
+my $validate_lic_bin = '../build/validate-lic';
 
 unless( -f $key_file ) {
-	print "Missing key.lic file, plese fix it\n";
-	exit;
+	#print "Missing key.lic file, plese fix it\n";
+    print qq($key_file does not exist, creating default key $default_key\n);
+	path($key_file)->spew_utf8($default_key);
 }
 
-#unless( -f $imprint_file) {
-#	print "Missing imprint.lic file.\nPlease run\n./validate-lic --validate";
-#	exit;
-#}
-
-my $key = File::Slurp::read_file($key_file);
-
+my $key = path($key_file)->slurp_utf8;
 chomp($key);
 
 system( $verify_key_bin, "--key", $key ) == 0
@@ -54,8 +50,8 @@ system( $client_lic_bin, '--key', $key, '--generate', '--output',
     "LICENSE FILE WAS NOT GENERATED -- error code: " . ( $? >> 8 ) . " \n" );
 print "LICENSE FILE GENERATED -- $client_license_file\n";
 
-
 system( $validate_lic_bin, '--key', $key, '--license', $client_license_file,
+    '--imprint-output',$imprint_file,
     '--validate' ) == 0
     or die( "CLIENT LICENSE WAS NOT VALIDATED -- error code: "
         . ( $? >> 8 )

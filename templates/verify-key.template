@@ -1,4 +1,9 @@
 #!/usr/bin/env perl
+use warnings;
+use strict;
+
+our $VERSION = '0.1.0';
+
 #
 #    This file is part of Mopslig.
 #
@@ -15,8 +20,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Mopslig.  If not, see <http://www.gnu.org/licenses/>.
 #
-use warnings;
-use strict;
+
 
 use PAR;
 use Crypt::PBKDF2;

@@ -1,4 +1,9 @@
 #!/usr/bin/env perl
+use warnings;
+use strict;
+
+our $VERSION = '0.1.0';
+
 #
 #    This file is part of Mopslig.
 #
@@ -15,8 +20,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Mopslig.  If not, see <http://www.gnu.org/licenses/>.
 #
-use warnings;
-use strict;
 
 use File::Basename qw(dirname);
 use Cwd qw(abs_path);
@@ -28,7 +31,6 @@ use Getopt::Long;
 use Time::Piece;
 use Crypt::CBC;
 use Crypt::Rijndael;
-#use Digest::SHA;
 use Digest::SHA1;
 use Crypt::PBKDF2;
 use Crypt::PBKDF2::Hash::HMACSHA2;
@@ -147,6 +149,5 @@ my $cipher = Crypt::CBC->new(
 );
 
 my $enc = $cipher->encrypt($lic_json);
-
-path($output)->spew_utf8($enc);
+path($output)->spew_raw($enc);
 exit(0);
