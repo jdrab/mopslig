@@ -19,7 +19,7 @@ use warnings;
 use strict;
 use Crypt::CBC;
 use Crypt::Rijndael;
-use File::Slurp;
+use Path::Tiny qw(path);
 use Getopt::Long;
 use Try::Tiny;
 use JSON::XS;
@@ -62,11 +62,12 @@ my $cipher = Crypt::CBC->new(
     -cipher => "Crypt::Rijndael"
 );
 
-my $imprint = File::Slurp::read_file( $imprint_file, { binmode => ':raw' } );
+#my $imprint = File::Slurp::read_file( $imprint_file, { binmode => ':raw' } );
+my $imprint = path($imprint_file)->slurp_utf8;
 my $dec = $cipher->decrypt($imprint);
 
 try {
-    # ak to skonci chybou, exit 1 v catch casti inak printne dekodovanu cast
+    # if json decode fails catch it and exit with error
     my $json = JSON::XS->new->decode($dec);
     print $dec;
     exit(0);
