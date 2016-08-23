@@ -1,0 +1,177 @@
+#!/usr/bin/env perl
+#
+#    This file is part of Mopslig.
+#
+#    Mopslig is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Mopslig is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Mopslig.  If not, see <http://www.gnu.org/licenses/>.
+#
+use warnings;
+use strict;
+use Getopt::Long;
+use File::Slurp;
+use Digest::SHA1;
+
+use Crypt::PBKDF2;
+use Crypt::PBKDF2::Hash::HMACSHA2;
+use Crypt::CBC;
+use Crypt::Rijndael;
+
+use File::Basename qw(dirname);
+use Cwd qw(abs_path);
+use lib dirname( abs_path $0) . '/lib';
+
+use Mopslig::Generator;
+use Mopslig::Licensing::Core;
+use Time::Piece;
+use Data::Dumper;
+
+use JSON::XS;
+
+my $key_file             = './key.lic';
+my $lic_file             = './client.lic';
+my $imprint_file_default = './imprint.lic';
+
+GetOptions(
+    'validate'       => \my $validate,       # musi byt zadany
+    'imprint-output=s' => \my $imprint_file,
+    'key=s'          => \my $key,
+    'license=s'      => \
+        my $license_file
+    , # ak nezada --license nazvo.lic automaticky sa pokusi otvorit client.lic
+    'help'     => \my $help,
+    'build-id' => \my $build_id
+);
+
+if ($help) {
+    usage();
+    exit(0);
+}
+
+my $build_id_val = "MOPSLIG_BUILD_ID";
+
+if ($build_id) {
+    print $build_id_val. "\n";
+    exit(0);
+}
+
+unless ($validate) {
+    usage();
+    exit(2);
+}
+
+#ak nezadam do prikazu key NIECO-123, pokusi sa precitat key.lic
+unless ($key) {
+
+    # ak ani ten neexistuje,
+    unless ( -e $key_file ) {
+        exit(4);
+    }
+    $key = File::Slurp::read_file($key_file);
+}
+
+chomp($key);
+
+my @hashes = qw(
+    MOPSLIG_EXTRACTION_HASHES
+);
+
+sub validate_lic {
+    my $key    = shift;
+    my $hashes = shift;
+    my $i      = 0;
+    my $sum    = scalar( @{$hashes} );
+
+    my $hash_class = 'HMACSHA2';
+    my $sha_size   = 512;
+    my $salt_len   = 10;
+    my @balik_data;
+    my $prefix = '{X-PBKDF2}HMACSHA2+512:AAAD6A:';
+
+    my $pbkdf2 = Crypt::PBKDF2->new(
+        hash_class => $hash_class,
+        hash_args  => { sha_size => $sha_size },
+        salt_len   => $salt_len
+    );
+
+    #$| = 1;
+
+    foreach my $enc_hash ( @{$hashes} ) {
+        if ( $pbkdf2->validate( $prefix . $enc_hash, $key ) ) {
+            return 1;    # ( split( "-", $key ) )[-1];
+        }
+
+        $i++;
+    }
+    return 0;
+}
+
+my $extraction = Mopslig::Generator::generate_key_for_lic_extraction($key);
+
+if ( validate_lic( $extraction, \@hashes ) ) {
+    my $cipher = Crypt::CBC->new(
+        -key    => $extraction,
+        -cipher => "Crypt::Rijndael"
+    );
+
+    unless ($license_file) {
+        unless ( -f $lic_file ) {
+            exit(3);
+        }
+        $license_file = $lic_file;
+    }
+
+    my $enc_lic
+        = File::Slurp::read_file( $license_file, { binmode => ':raw' } );
+
+    my $dec = $cipher->decrypt($enc_lic);
+
+    my $cip = Crypt::CBC->new(
+        -key    => $key,
+        -cipher => "Crypt::Rijndael"
+    );
+
+    unless ($imprint_file) {
+        $imprint_file = $imprint_file_default;
+    }
+
+    File::Slurp::write_file( $imprint_file, $cip->encrypt($dec) );
+
+    exit(0);
+}
+else {
+    exit(1);
+}
+
+sub usage {
+    print <<EOL;
+
+Validate license key
+
+Usage:
+
+$0\t--validate\nrequried parameter for license validation process
+\t\t--key\tkey to verify
+\t\t--imprint-output\twhere to save license imprint, default is ./imprint.lic
+\t\t--license\tpath to license file or client.lic will be used
+\t\t--build-id \tdisplay build-id
+\t\t--help\tdisplay this help
+
+Exit codes:
+
+0   - License file is valid for this key
+1   - License is not valid for key
+2   - Error: Wrong parameters
+3   - Error: License file does not exits
+4   - Error: Key file does not exists
+EOL
+}

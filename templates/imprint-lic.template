@@ -1,0 +1,98 @@
+#!/usr/bin/env perl
+#
+#    This file is part of Mopslig.
+#
+#    Mopslig is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Mopslig is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Mopslig.  If not, see <http://www.gnu.org/licenses/>.
+#
+use warnings;
+use strict;
+use Crypt::CBC;
+use Crypt::Rijndael;
+use File::Slurp;
+use Getopt::Long;
+use Try::Tiny;
+use JSON::XS;
+
+GetOptions(
+    'key=s'          => \my $key,
+    'imprint-file=s' => \my $imprint_file,
+    'help'           => \my $help,
+    'build-id'       => \my $build_id
+);
+
+if ($help) {
+    usage();
+    exit;
+}
+
+my $build_id_val = "MOPSLIG_BUILD_ID";
+
+if ($build_id) {
+    print $build_id_val. "\n";
+    exit(0);
+}
+
+unless ($key) {
+    print "Key is required.\n";
+    usage();
+    exit(4);
+}
+
+unless (defined($imprint_file) && -r $imprint_file ) {
+    print "License imprint file is missing.\n";
+    usage();
+    exit(3);
+}
+
+chomp($key);
+
+my $cipher = Crypt::CBC->new(
+    -key    => $key,
+    -cipher => "Crypt::Rijndael"
+);
+
+my $imprint = File::Slurp::read_file( $imprint_file, { binmode => ':raw' } );
+my $dec = $cipher->decrypt($imprint);
+
+try {
+    # ak to skonci chybou, exit 1 v catch casti inak printne dekodovanu cast
+    my $json = JSON::XS->new->decode($dec);
+    print $dec;
+    exit(0);
+}
+catch {
+    exit(1);
+};
+
+sub usage {
+    print <<EOL;
+
+Read license imprint file
+
+Usage:
+
+$0\n\t\t--key\tyour license key
+\t\t--imprint-file\tpath to your imprint.lic file
+\t\t--build-id \tdisplay build-id
+\t\t--help\tdisplay this help
+
+Exit codes:
+
+0   - Prints license imprint
+1   - License is not valid for key
+2   - Error: Wrong parameters, prints usage.
+3   - Error: Imprint file does not exits
+4   - Error: Key is missing
+EOL
+}

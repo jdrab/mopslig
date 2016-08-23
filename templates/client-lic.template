@@ -1,0 +1,153 @@
+#!/usr/bin/env perl
+#
+#    This file is part of Mopslig.
+#
+#    Mopslig is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Mopslig is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Mopslig.  If not, see <http://www.gnu.org/licenses/>.
+#
+use warnings;
+use strict;
+
+use File::Basename qw(dirname);
+use Cwd qw(abs_path);
+use lib dirname( abs_path $0) . '/lib';
+
+use File::Slurp;
+use JSON::XS;
+use Getopt::Long;
+use Time::Piece;
+use Crypt::CBC;
+use Crypt::Rijndael;
+#use Digest::SHA;
+use Digest::SHA1;
+use Crypt::PBKDF2;
+use Crypt::PBKDF2::Hash::HMACSHA2;
+use Mopslig::Generator;
+use Mopslig::Licensing::Core;
+
+# my $default_license_key = 'START-DE12-FA34-UL56-T789';
+# my $key_file = './key.lic';
+
+=pod
+Generates client license file(client.lic) from MOPSLIG_LICENSE_CONFIGbuild
+=cut
+
+GetOptions(
+    'help'=>\my $help,
+    'key=s'=> \my $key,
+    'generate'   => \my $generate,
+    'refresh' => \my $refresh,
+    'output=s'=> \my $output,
+    'build-id'   => \my $build_id
+);
+
+if( $help ) {
+    usage();
+    exit;
+}
+
+my $build_id_val = "MOPSLIG_BUILD_ID";
+
+if ($build_id) {
+    print $build_id_val. "\n";
+    exit;
+}
+
+unless ( ($generate || $refresh) && $output) {
+    usage();
+    exit(1);
+}
+
+if( $refresh && ! -e $output ) {
+	print "License file $output does not exist\n";
+	exit(3);
+}
+sub usage {
+    print <<EOL;
+
+Generate client license object
+
+Usage:
+
+$0\t--key\tLicense key
+\t\t--generate\tGenerate new license
+\t\t--refresh\tGenerate only if actual license file is invalid
+\t\t--output \tlicense file (client.lic)
+
+\t\t--build-id \tprint build-id
+\t\t--help\tdisplay this help
+
+Exit codes:
+
+0   - Success
+1   - Error: Wrong parameters
+2   - Error: invalid key (type)
+3   - Error: output file does not exist - only used when refreshing license
+
+
+EOL
+}
+
+my $products     = qq(MOPSLIG_LICSENSE_CONFIG);
+my $product_data = JSON::XS->new->utf8->decode($products);
+
+unless( $key) {
+    print "Missing --key\n";
+    exit(1);
+}
+chomp($key);
+
+#first part of key aka $type
+my $type = lc( ( split( '-', $key ) )[0] );
+
+unless( exists( $product_data->{licenses}{types}{$type})) {
+    exit(2);
+}
+
+my $lic
+    = $product_data->{licenses}{types}{$type};
+
+if ($refresh) {
+    my ( undef, undef, undef, undef, $month, $year ) = localtime;
+    $month += 1; # lebo mesiace oznacuje od 0 do 11
+    $year += 1900;
+
+    my $valid_until = $lic->{valid_until};
+
+    my ( $valid_year, $valid_month ) = split( "-", $valid_until );
+
+    if ( $valid_year >= $year && $valid_month >= $month ) {
+        #print "exit 0";
+        #exit(0);
+        die('zamysli sa co si chcel');
+    }
+}
+
+$lic->{key} = $key;
+
+my $ekey = Mopslig::Generator::generate_key_for_lic_extraction($key);
+chomp($ekey);
+my $lic_json = JSON::XS->new->encode($lic);
+
+use Crypt::CBC;
+use Crypt::Rijndael;
+
+my $cipher = Crypt::CBC->new(
+    -key    => $ekey,
+    -cipher => "Crypt::Rijndael"
+);
+
+my $enc = $cipher->encrypt($lic_json);
+
+File::Slurp::write_file( $output, { binmode => ':raw' }, $enc );
+exit(0);
