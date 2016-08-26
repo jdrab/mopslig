@@ -39,7 +39,7 @@ $read_content =~ s/"MOPSLIG_BUILD_ID"/"$build_id"/g;
 path($read_file)->spew_utf8($read_content);
 
 my @build_args = (
-    "pp",                    "-a=../lib/",
+    "pp",                    "-a=./lib/",
     "-f=PodStrip",           "./" . $read_file,
     "--output=$read_binary", "-z=9"
 );

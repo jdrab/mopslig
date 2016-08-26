@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.2.0';
 
 #
 #    This file is part of Mopslig.
@@ -30,7 +30,7 @@ use Crypt::PBKDF2::Hash::HMACSHA2;
 use Crypt::CBC;
 use Crypt::Rijndael;
 
-use File::Basename qw(dirname);
+use File::Basename qw(dirname basename);
 use Cwd qw(abs_path);
 use lib dirname( abs_path $0) . '/../lib';
 
@@ -153,18 +153,19 @@ else {
 }
 
 sub usage {
+    my $file = basename($0);
     print <<EOL;
 
-Validate license key
+Validate license file
 
 Usage:
 
-$0\t--validate\nrequried parameter for license validation process
-\t\t--key\tkey to verify
+$file\t--validate\t\trequried parameter for license validation process
+\t\t--key\t\t\tkey to verify
 \t\t--imprint-output\twhere to save license imprint, default is ./imprint.lic
-\t\t--license\tpath to license file or client.lic will be used
-\t\t--build-id \tdisplay build-id
-\t\t--help\tdisplay this help
+\t\t--license\t\tpath to license file or client.lic will be used
+\t\t--build-id \t\tdisplay build-id
+\t\t--help\t\t\tdisplay this help
 
 Exit codes:
 
@@ -173,5 +174,6 @@ Exit codes:
 2   - Error: Wrong parameters
 3   - Error: License file does not exits
 4   - Error: Key file does not exists
+
 EOL
 }

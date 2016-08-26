@@ -3,9 +3,9 @@
 		"valid_since": "2016-08",
 			"valid_until": "2017-07",
 			"amounts": {
-				"start": 10,
-				"plus":  11,
-				"premium": 12
+				"start": 100,
+				"plus":  500,
+				"premium": 500
 			},
 			"types": {
 				"plus": {

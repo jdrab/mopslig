@@ -3,10 +3,7 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
 function remove_files {
 	rm -rf ../data/*
-  unlink ../tmp/imprint.lic
-	unlink ../tmp/client.lic
-	unlink ../tmp/key.lic
-	rm -rf ../tmp/*.tmp
+  rm -rf ../tmp/*.tmp
 	unlink ../build/client-lic
 	unlink ../build/validate-lic
 	unlink ../build/verify-key

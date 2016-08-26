@@ -48,7 +48,7 @@ $validate_content =~ s/MOPSLIG_EXTRACTION_HASHES/$extraction_hashes/g;
 path($validate_file)->spew_utf8( $validate_content );
 
 my @build_args = (
-    "pp", "-a=../lib/", "-f=PodStrip", "./" . $validate_file,
+    "pp", "-a=./lib/", "-f=PodStrip", "./" . $validate_file,
     "--output=$validate_binary", "-z=9"
 );
 

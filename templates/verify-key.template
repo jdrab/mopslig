@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.2.0';
 
 #
 #    This file is part of Mopslig.
@@ -21,7 +21,7 @@ our $VERSION = '0.1.0';
 #    along with Mopslig.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
+use File::Basename qw(dirname basename);
 use PAR;
 use Crypt::PBKDF2;
 use Crypt::PBKDF2::Hash::HMACSHA2;
@@ -65,20 +65,21 @@ unless ($key) {
 }
 
 sub usage {
+    my $file = basename($0);
     print <<EOL;
 
-Verify license file
+Verify license key
 
 Usage:
 
-$0\t--key \tkey to verify
+$file\t--key\t\tkey to verify
 \t\t--buid-id\tdisplay build-id
 
 Exit codes:
 
-0   key is valid
-1   key is invalid
-2   missing key
+0   - key is valid
+1   - key is invalid
+2   - missing key
 
 EOL
 }

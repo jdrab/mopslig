@@ -47,7 +47,7 @@ $lic_content =~ s/MOPSLIG_LICSENSE_CONFIG/$config_content/g;
 path($lic_generator_file)->spew_utf8($lic_content);
 
 my @build_args = (
-    "pp", "-a=../lib/", "-f=PodStrip",
+    "pp", "-a=./lib", "-f=PodStrip",
     "./" . $lic_generator_file,
     "--output=$lic_generator_binary", "-z=9"
 );

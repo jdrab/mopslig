@@ -52,7 +52,7 @@ $verify_content =~ s/MOPSLIG_VERIFY_HASHES/$verify_hashes/g;
 path($verify_file)->spew_utf8($verify_content);
 
 my @build_args = (
-    "pp",                      "-a=../lib/",
+    "pp",                      "-a=./lib/",
     "-f=PodStrip",             "./" . $verify_file,
     "--output=$verify_binary", "-z=9"
 );

@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.2.0';
 
 #
 #    This file is part of Mopslig.
@@ -24,7 +24,7 @@ our $VERSION = '0.1.0';
 # can not use Path::Tiny becose it won't build 
 # there is somethink like "use if" and it fails with PAR::packer
 
-use File::Basename qw(dirname);
+use File::Basename qw(dirname basename);
 use Cwd qw(abs_path);
 use lib dirname( abs_path $0) . '/../lib';
 
@@ -53,13 +53,13 @@ if ($build_id) {
     print $build_id_val. "\n";
     exit(0);
 }
-chomp($key);
 
 unless ($key) {
-    print "Key is required.\n";
     usage();
     exit(4);
 }
+
+chomp($key);
 
 unless ( -r $imprint_file ) {
     print "License imprint file is missing.\n";
@@ -94,16 +94,17 @@ catch {
 };
 
 sub usage {
+    my $file = basename($0);    
     print <<EOL;
 
 Read license imprint file
 
 Usage:
 
-$0\n\t\t--key\tyour license key
+$file\t--key\t\tyour license key
 \t\t--imprint-file\tpath to your imprint.lic file
-\t\t--build-id \tdisplay build-id
-\t\t--help\tdisplay this help
+\t\t--build-id\tdisplay build-id
+\t\t--help\t\tdisplay this help
 
 Exit codes:
 
@@ -112,5 +113,6 @@ Exit codes:
 2   - Error: Wrong parameters, prints usage.
 3   - Error: Imprint file does not exits
 4   - Error: Key is missing
+
 EOL
 }

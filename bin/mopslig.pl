@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.2.0';
 
 #
 #    This file is part of Mopslig.
@@ -30,14 +30,16 @@ use Getopt::Long;
 use Path::Tiny qw(path);
 use File::Basename qw(dirname);
 use Cwd qw(abs_path);
-use lib dirname( abs_path $0) . '/../lib';
 
+use lib  dirname( abs_path $0).'/lib';
 use Mopslig::Generator;
 use Mopslig::Helper;
 
+my $mop_dir = dirname( abs_path $0) . '/../';
+
 #FIXME: merge with config or create another or maybe just use getopts
-my $config_file             = '../config.json';
-my $_dir                    = '../data';
+my $config_file             = $mop_dir . '/config.json';
+my $_dir                    = $mop_dir . '/data';
 my $_file_full              = $_dir . '/full.txt';
 my $_serials_full           = $_dir . '/serials.txt';
 my $_verify_hashes_full     = $_dir . '/verify-hashes.txt';

@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.2.0';
 
 #
 #    This file is part of Mopslig.
@@ -21,7 +21,7 @@ our $VERSION = '0.1.0';
 #    along with Mopslig.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-use File::Basename qw(dirname);
+use File::Basename qw(dirname basename);
 use Cwd qw(abs_path);
 use lib dirname( abs_path $0) . '/../lib';
 
@@ -76,19 +76,19 @@ if( $refresh && ! -e $output ) {
 	exit(3);
 }
 sub usage {
+my $file = basename($0);
     print <<EOL;
 
 Generate client license object
 
 Usage:
 
-$0\t--key\tLicense key
+$file\t--key\t\tLicense key
 \t\t--generate\tGenerate new license
 \t\t--refresh\tGenerate only if actual license file is invalid
-\t\t--output \tlicense file (client.lic)
-
-\t\t--build-id \tprint build-id
-\t\t--help\tdisplay this help
+\t\t--output\tlicense file (client.lic)
+\t\t--build-id\tprint build-id
+\t\t--help\t\tdisplay this help
 
 Exit codes:
 
@@ -96,7 +96,6 @@ Exit codes:
 1   - Error: Wrong parameters
 2   - Error: invalid key (type)
 3   - Error: output file does not exist - only used when refreshing license
-
 
 EOL
 }

@@ -13,10 +13,13 @@ your clients and other stuff. Demo will be also available soon.
 - perl JSON::XS
 - perl Getopt::Long
 - perl Time::Piece
+- perl Crypt::CBC
 - perl Digest::SHA
 - perl Digest::SHA1
 - perl Crypt::PBKDF2
 - perl Crypt::PBKDF2::Hash::HMACSHA2
+- perl Crypt::Rijndael
+
 
 ## Usage - kinda automatic
 - edit config.json
@@ -33,6 +36,7 @@ $ ./build_all.sh -y
 $ cd bin
 $ ./test_it.pl
 ```
+See [binaries docmentation usage](https://github.com/jdrab/mopslig/blob/master/mopslig.md) for more informations.
 
 ## How do i remove this mess?
 - all generated files including key.lic can be removed by ./remove_files.sh, just run 
@@ -215,17 +219,13 @@ It is used by the perl pp command to build `verify-key` binary.
 
 
 ### Versions
-This project is using semantic versioning;
 
-- Version 0.1.0
->see [CHANGELOG.md](https://github.com/jdrab/mopslig/blob/master/CHANGELOG.md) for more info
+- Version 0.2.0 - 2016-08-26
+- Version 0.1.0 - 2016-08-23
+- Version 0.0.2 - 2016-08-03
+- Version 0.0.1 - 2016-08-01
 
-- Version 0.0.2
->don't remember what changed
-
-- Version 0.0.1
->init obviously
-
+see [CHANGELOG](https://github.com/jdrab/mopslig/blob/master/CHANGELOG.md) for more info
 
 ### Todos
   
